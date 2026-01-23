@@ -59,13 +59,12 @@
       justify-content:flex-end;
       position:relative;
     }
-
     .input{
-      width:min(320px, 48vw);
+      width:min(340px, 52vw);
       background: var(--panel2);
       border:1px solid var(--border);
       border-radius: 999px;
-      padding:9px 12px;
+      padding:10px 12px;
       color: var(--text);
       outline:none;
     }
@@ -73,7 +72,7 @@
       background: var(--panel2);
       border:1px solid var(--border);
       border-radius: 999px;
-      padding:9px 10px;
+      padding:10px 10px;
       color: var(--text);
       outline:none;
       cursor:pointer;
@@ -83,7 +82,7 @@
       background: var(--accent);
       color:#071126;
       font-weight:800;
-      padding:9px 12px;
+      padding:10px 12px;
       border-radius: 999px;
       cursor:pointer;
       user-select:none;
@@ -100,31 +99,15 @@
     }
     .btn:active{transform: translateY(1px)}
 
-    .hint{
-      position:fixed;
-      left:12px; bottom:12px;
-      z-index:10;
-      padding:10px 12px;
-      background: var(--panel);
-      border:1px solid var(--border);
-      border-radius: 999px;
-      backdrop-filter: blur(12px);
-      box-shadow: var(--shadow);
-      color: var(--muted);
-      font-size: 13px;
-      display:flex; align-items:center; gap:8px;
-      max-width: calc(100vw - 24px);
-    }
-
-    /* Autocomplete dropdown */
+    /* Apple-like results dropdown */
     .dropdown{
       position:absolute;
-      top:46px;
+      top:48px;
       right:0;
-      width:min(520px, 92vw);
+      width:min(560px, 92vw);
       background: rgba(15,27,51,.96);
       border:1px solid var(--border);
-      border-radius: 16px;
+      border-radius: 18px;
       box-shadow: var(--shadow);
       overflow:hidden;
       display:none;
@@ -132,21 +115,66 @@
       backdrop-filter: blur(12px);
     }
     .dropdown.open{display:block}
+
+    .dd-head{
+      padding:10px 12px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .dd-head .muted{color:var(--muted); font-size:12px}
+
     .dd-item{
       padding:10px 12px;
       border-bottom:1px solid rgba(255,255,255,.06);
       cursor:pointer;
+      display:flex; gap:10px; align-items:flex-start;
     }
     .dd-item:hover{background: rgba(255,255,255,.06)}
-    .dd-title{font-weight:800; font-size:13px}
+    .dd-ico{
+      width:30px; height:30px;
+      border-radius: 12px;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      display:flex; align-items:center; justify-content:center;
+      flex:0 0 auto;
+      margin-top:1px;
+    }
+    .dd-title{font-weight:800; font-size:13px; line-height:1.2}
     .dd-sub{color: var(--muted); font-size:12px; margin-top:2px}
+
+    /* Search action bar (like Apple Maps bottom card) */
+    .searchCard{
+      position:fixed;
+      left:12px;
+      right:12px;
+      bottom:12px;
+      z-index:10;
+      display:none;
+      background: rgba(15,27,51,.92);
+      border:1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      padding:12px;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .searchCard.open{display:flex}
+    .searchCard .txt{display:flex; flex-direction:column; gap:2px; overflow:hidden}
+    .searchCard .t1{font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .searchCard .t2{color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .searchCard .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
 
     /* Sidebar */
     .sidebar{
       position:fixed;
       top:76px;
       right:12px;
-      width: 380px;
+      width: 390px;
       max-width: calc(100vw - 24px);
       height: calc(100vh - 88px);
       z-index:10;
@@ -183,6 +211,23 @@
       padding:12px;
     }
     .kv{display:flex; flex-direction:column; gap:6px}
+    .pillrow{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      border-radius: 999px;
+      padding:6px 10px;
+      font-size: 12px;
+      color: var(--text);
+    }
+    .dotpill{
+      width:10px; height:10px; border-radius: 99px;
+      border:1px solid rgba(255,255,255,.18);
+      background: #6aa7ff;
+    }
     .gallery{
       display:grid;
       grid-template-columns: repeat(2, 1fr);
@@ -210,7 +255,7 @@
     }
     .modal.open{display:flex}
     .modal-card{
-      width: 560px;
+      width: 610px;
       max-width: calc(100vw - 24px);
       background: rgba(15,27,51,.96);
       border:1px solid var(--border);
@@ -263,14 +308,49 @@
       background: rgba(0,0,0,.2);
     }
 
+    /* Custom marker */
+    .cm{
+      width: 34px;
+      height: 34px;
+      border-radius: 14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: 16px;
+      font-weight: 900;
+      color: #0b1220;
+      border: 1px solid rgba(255,255,255,.20);
+      box-shadow: 0 10px 22px rgba(0,0,0,.35);
+      transform: translateY(-2px);
+      position: relative;
+    }
+    .cm:after{
+      content:"";
+      position:absolute;
+      width: 10px;
+      height: 10px;
+      background: inherit;
+      border-left: 1px solid rgba(255,255,255,.20);
+      border-bottom: 1px solid rgba(255,255,255,.20);
+      transform: translateY(19px) rotate(45deg);
+      border-radius: 2px;
+      left: 50%;
+      margin-left: -5px;
+    }
+    .cm-wrap{ position: relative; }
+
     @media (max-width: 720px){
       .topbar{border-radius: 18px}
       .controls{gap:6px}
-      .input{width:min(220px, 44vw)}
+      .input{width:min(240px, 56vw)}
       .sidebar{left:12px; right:12px; width:auto; top:76px;}
       .gallery{grid-template-columns: 1fr}
       .thumb{height:180px}
       .dropdown{right:auto; left:0; width: calc(100vw - 24px);}
+      .row{flex-direction:column}
+      .searchCard{flex-direction:column; align-items:stretch}
+      .searchCard .actions{justify-content:stretch}
+      .searchCard .actions .btn{flex:1}
     }
   </style>
 </head>
@@ -282,7 +362,7 @@
     <div class="brand">
       <span class="dot"></span>
       <span>CheeseMap</span>
-      <span class="muted small">• California</span>
+      <span class="muted small">• CA • Apple-style search</span>
     </div>
 
     <div class="controls">
@@ -292,10 +372,8 @@
         <option value="satellite">Satellite</option>
       </select>
 
-      <input id="addr" class="input" type="text" placeholder="Search address / place (CA)..." autocomplete="off" />
+      <input id="search" class="input" type="text" placeholder="Search (address, city, business)…" autocomplete="off" />
       <div id="dropdown" class="dropdown"></div>
-
-      <input id="pinSearch" class="input" type="text" placeholder="Search your pins..." />
 
       <button id="btnLocate" class="btn ghost">Locate</button>
       <button id="btnExport" class="btn ghost">Export</button>
@@ -304,8 +382,15 @@
     </div>
   </div>
 
-  <div class="hint" id="hint">
-    🗺️ California-only map. Search an address, then click map to add a user pin + photos.
+  <div class="searchCard" id="searchCard">
+    <div class="txt">
+      <div class="t1" id="scTitle">Result</div>
+      <div class="t2" id="scSub">Address</div>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="btnClearResult">Clear</button>
+      <button class="btn" id="btnAddPinHere">Add pin here</button>
+    </div>
   </div>
 
   <aside class="sidebar" id="sidebar">
@@ -315,6 +400,10 @@
           <h2 id="sbTitle">Pin</h2>
           <div class="muted" id="sbNotes"></div>
           <div class="muted small" id="sbMeta"></div>
+          <div class="pillrow" style="margin-top:8px;">
+            <span class="pill"><span class="dotpill" id="sbColorDot"></span> <span id="sbCat">Category</span></span>
+            <span class="pill">Icon: <span id="sbIcon">📍</span></span>
+          </div>
         </div>
         <div class="sidebar-actions">
           <button class="btn ghost" id="btnEditPin">Edit</button>
@@ -350,7 +439,7 @@
         <div class="row">
           <div>
             <label>Title</label>
-            <input id="pinTitle" type="text" placeholder="e.g., Work site, ranch gate, photo spot..." />
+            <input id="pinTitle" type="text" placeholder="e.g., Spot, note, etc…" />
           </div>
           <div>
             <label>Tags (optional)</label>
@@ -358,15 +447,37 @@
           </div>
         </div>
 
+        <div class="row">
+          <div>
+            <label>Category</label>
+            <select id="pinCategory" class="select" style="width:100%; border-radius:14px;">
+              <option value="cheese">Cheese</option>
+              <option value="note">Note</option>
+              <option value="warning">Warning</option>
+              <option value="funny">Funny</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label>Marker Color</label>
+            <input id="pinColor" type="color" value="#6aa7ff"
+              style="width:100%; height:40px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:transparent;" />
+          </div>
+          <div>
+            <label>Icon (emoji)</label>
+            <input id="pinIcon" type="text" maxlength="2" placeholder="🧀" />
+          </div>
+        </div>
+
         <div>
           <label>Notes</label>
-          <textarea id="pinNotes" placeholder="Notes..."></textarea>
+          <textarea id="pinNotes" placeholder="Notes…"></textarea>
         </div>
 
         <div>
           <label>Photos (optional)</label>
           <input id="pinPhotos" type="file" accept="image/*" multiple />
-          <div class="muted small">Stored locally (IndexedDB) so they persist after refresh.</div>
+          <div class="muted small">Stored locally (IndexedDB).</div>
         </div>
 
         <div class="muted small" id="pinCoords"></div>
@@ -386,23 +497,30 @@
 
   <script>
     /*********************
-     * MapTiler styles
+     * MapTiler (map + search)
      *********************/
     const MAPTILER_KEY = "rreP1kJx0CQWSnrve5pW";
 
     const STYLES = {
-      streets: `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`,
-      dark: `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MAPTILER_KEY}`,
-      satellite: `https://api.maptiler.com/maps/satellite/style.json?key=${MAPTILER_KEY}`
+      streets:   `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`,
+      dark:      `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MAPTILER_KEY}`,
+      satellite: `https://api.maptiler.com/maps/hybrid/style.json?key=${MAPTILER_KEY}`
     };
 
-    /*********************
-     * California bounds
-     *********************/
+    // California bounds
     const CA_BOUNDS = [
       [-124.482003, 32.528832],
       [-114.131211, 42.009518]
     ];
+
+    // Pin defaults
+    const CAT_DEFAULTS = {
+      cheese:  { color:"#ffd166", icon:"🧀", label:"Cheese" },
+      note:    { color:"#6aa7ff", icon:"📝", label:"Note" },
+      warning: { color:"#ff6a7a", icon:"⚠️", label:"Warning" },
+      funny:   { color:"#8bffb0", icon:"😂", label:"Funny" },
+      other:   { color:"#c3b5ff", icon:"📍", label:"Other" }
+    };
 
     /*********************
      * Helpers
@@ -416,6 +534,13 @@
       return String(s).replace(/[&<>"']/g, (c) => ({
         "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
       }[c]));
+    }
+
+    function isInCA(lng, lat){
+      return (
+        lng >= CA_BOUNDS[0][0] && lng <= CA_BOUNDS[1][0] &&
+        lat >= CA_BOUNDS[0][1] && lat <= CA_BOUNDS[1][1]
+      );
     }
 
     /*********************
@@ -437,7 +562,9 @@
         req.onerror = () => reject(req.error);
       });
     }
+
     function tx(store, mode="readonly"){ return db.transaction(store, mode).objectStore(store); }
+
     async function dbPut(store, value){
       return new Promise((resolve, reject) => {
         const req = tx(store, "readwrite").put(value);
@@ -445,6 +572,7 @@
         req.onerror = () => reject(req.error);
       });
     }
+
     async function dbGet(store, key){
       return new Promise((resolve, reject) => {
         const req = tx(store).get(key);
@@ -452,6 +580,7 @@
         req.onerror = () => reject(req.error);
       });
     }
+
     async function dbDelete(store, key){
       return new Promise((resolve, reject) => {
         const req = tx(store, "readwrite").delete(key);
@@ -459,6 +588,7 @@
         req.onerror = () => reject(req.error);
       });
     }
+
     async function dbGetAllPins(){
       return new Promise((resolve, reject) => {
         const req = tx("pins").getAll();
@@ -468,27 +598,74 @@
     }
 
     /*********************
-     * App state
+     * Map + markers
      *********************/
     let map;
-    let markers = new Map();
+    let markers = new Map(); // pinId -> Marker
+    let searchMarker = null;
+
     let currentPin = null;
     let pendingLatLng = null;
     let isEditMode = false;
 
+    // last search result
+    let selectedSearch = null;
+
+    // gallery object URLs
     let activeObjectUrls = [];
     function revokeObjectUrls(){
       for (const u of activeObjectUrls) URL.revokeObjectURL(u);
       activeObjectUrls = [];
     }
 
-    // Search marker (not saved)
-    let searchMarker = null;
-    let lastGeocode = null;
+    function createMarkerEl(color, icon){
+      const wrap = document.createElement("div");
+      wrap.className = "cm-wrap";
 
-    /*********************
-     * Map init (CA-only)
-     *********************/
+      const el = document.createElement("div");
+      el.className = "cm";
+      el.style.background = color || "#6aa7ff";
+      el.textContent = (icon && icon.trim()) ? icon.trim().slice(0,2) : "📍";
+
+      wrap.appendChild(el);
+      return wrap;
+    }
+
+    function setSearchMarker(lng, lat){
+      if (searchMarker) searchMarker.remove();
+      searchMarker = new maplibregl.Marker({ color: "#ffffff" })
+        .setLngLat([lng, lat])
+        .addTo(map);
+    }
+
+    function clearMarkers(){
+      for (const m of markers.values()) m.remove();
+      markers.clear();
+    }
+
+    function addMarkerForPin(pin){
+      const el = createMarkerEl(pin.color, pin.icon);
+      el.style.cursor = "pointer";
+
+      const marker = new maplibregl.Marker({ element: el })
+        .setLngLat([pin.lng, pin.lat])
+        .addTo(map);
+
+      el.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        openSidebar(pin.id);
+      });
+
+      markers.set(pin.id, marker);
+    }
+
+    async function refreshPinsOnMap(){
+      const pins = await dbGetAllPins();
+      clearMarkers();
+      pins.sort((a,b)=> (b.createdAt||0)-(a.createdAt||0));
+      for (const pin of pins) addMarkerForPin(pin);
+    }
+
     function initMap(){
       map = new maplibregl.Map({
         container: "map",
@@ -505,29 +682,26 @@
       map.setMaxZoom(20);
 
       map.addControl(new maplibregl.NavigationControl({ visualizePitch:true }), "top-left");
-      map.addControl(new maplibregl.FullscreenControl(), "top-left");
 
       map.on("click", (e) => {
         closeDropdown();
-        openPinModal({ lat: e.lngLat.lat, lng: e.lngLat.lng }, null);
-        if (lastGeocode?.label) $("pinTitle").value = lastGeocode.label;
+        const { lng, lat } = e.lngLat;
+        openPinModal({ lng, lat }, null);
       });
 
-      // Style switcher
       $("styleSel").addEventListener("change", () => {
         const v = $("styleSel").value;
         map.setStyle(STYLES[v] || STYLES.streets);
 
-        // Re-add markers after style loads
         map.once("styledata", async () => {
-          await refreshPinsOnMap($("pinSearch").value);
-          if (searchMarker && lastGeocode) setSearchMarker(lastGeocode.lng, lastGeocode.lat);
+          await refreshPinsOnMap();
+          if (selectedSearch?.lng != null) setSearchMarker(selectedSearch.lng, selectedSearch.lat);
         });
       });
     }
 
     /*********************
-     * Modal
+     * Modal (pin create/edit)
      *********************/
     function openPinModal(latlng, pinToEdit){
       pendingLatLng = latlng;
@@ -536,52 +710,109 @@
       $("modalTitle").textContent = isEditMode ? "Edit Pin" : "New Pin";
       $("pinCoords").textContent = `Coords: ${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
 
-      $("pinTitle").value = pinToEdit?.title || "";
+      $("pinTitle").value = pinToEdit?.title || (selectedSearch?.name || "");
       $("pinTags").value  = (pinToEdit?.tags || []).join(", ");
       $("pinNotes").value = pinToEdit?.notes || "";
-      $("pinPhotos").value = "";
 
+      const cat = pinToEdit?.category || "cheese";
+      $("pinCategory").value = cat;
+
+      const def = CAT_DEFAULTS[cat] || CAT_DEFAULTS.other;
+      $("pinColor").value = pinToEdit?.color || def.color;
+      $("pinIcon").value  = pinToEdit?.icon  || def.icon;
+
+      $("pinPhotos").value = "";
       $("modal").classList.add("open");
     }
+
     function closePinModal(){
       $("modal").classList.remove("open");
       pendingLatLng = null;
       isEditMode = false;
     }
 
-    /*********************
-     * Pins on map
-     *********************/
-    function clearMarkers(){
-      for (const m of markers.values()) m.remove();
-      markers.clear();
+    $("pinCategory").addEventListener("change", () => {
+      const cat = $("pinCategory").value;
+      const def = CAT_DEFAULTS[cat] || CAT_DEFAULTS.other;
+      $("pinColor").value = def.color;
+      $("pinIcon").value  = def.icon;
+    });
+
+    async function storeFilesAsPhotos(files){
+      const ids = [];
+      for (const file of files){
+        if (file.size > 12 * 1024 * 1024){
+          alert(`Skipped ${file.name} (over 12MB).`);
+          continue;
+        }
+        const id = uid();
+        await dbPut("photos", { id, blob: file, name: file.name, type: file.type, createdAt: Date.now() });
+        ids.push(id);
+      }
+      return ids;
     }
-    function addMarkerForPin(pin){
-      const marker = new maplibregl.Marker({ color: "#6aa7ff" })
-        .setLngLat([pin.lng, pin.lat])
-        .addTo(map);
 
-      marker.getElement().style.cursor = "pointer";
-      marker.getElement().addEventListener("click", (ev) => {
-        ev.stopPropagation();
-        openSidebar(pin.id);
-      });
+    async function savePinFromModal(){
+      if (!pendingLatLng) return;
 
-      markers.set(pin.id, marker);
-    }
-    async function refreshPinsOnMap(filterText=""){
-      const pins = await dbGetAllPins();
-      const q = (filterText || "").trim().toLowerCase();
+      const title = $("pinTitle").value.trim();
+      const notes = $("pinNotes").value.trim();
+      const tags  = $("pinTags").value.split(",").map(s=>s.trim()).filter(Boolean);
+      const files = Array.from($("pinPhotos").files || []);
 
-      clearMarkers();
+      const category = $("pinCategory").value || "other";
+      const color = $("pinColor").value || (CAT_DEFAULTS[category]?.color || "#6aa7ff");
+      const icon = ($("pinIcon").value || CAT_DEFAULTS[category]?.icon || "📍").trim().slice(0,2);
 
-      const filtered = !q ? pins : pins.filter(p => {
-        const hay = `${p.title||""} ${p.notes||""} ${(p.tags||[]).join(" ")}`.toLowerCase();
-        return hay.includes(q);
-      });
+      if (!title && !notes && !files.length) {
+        alert("Add at least a title, notes, or a photo.");
+        return;
+      }
 
-      filtered.sort((a,b)=> (b.createdAt||0)-(a.createdAt||0));
-      for (const pin of filtered) addMarkerForPin(pin);
+      if (isEditMode && currentPin){
+        const updated = {
+          ...currentPin,
+          title, notes, tags,
+          category, color, icon,
+          lat: pendingLatLng.lat,
+          lng: pendingLatLng.lng,
+          updatedAt: Date.now()
+        };
+
+        if (files.length){
+          const newPhotoIds = await storeFilesAsPhotos(files);
+          updated.photoIds = [...(updated.photoIds||[]), ...newPhotoIds];
+        }
+
+        await dbPut("pins", updated);
+        closePinModal();
+        await refreshPinsOnMap();
+        await openSidebar(updated.id);
+        return;
+      }
+
+      const pinId = uid();
+      const createdAt = Date.now();
+      const photoIds = files.length ? await storeFilesAsPhotos(files) : [];
+
+      const pin = {
+        id: pinId,
+        lat: pendingLatLng.lat,
+        lng: pendingLatLng.lng,
+        title,
+        notes,
+        tags,
+        category,
+        color,
+        icon,
+        createdAt,
+        photoIds
+      };
+
+      await dbPut("pins", pin);
+      closePinModal();
+      await refreshPinsOnMap();
+      await openSidebar(pinId);
     }
 
     /*********************
@@ -600,6 +831,12 @@
       const tagTxt = (pin.tags && pin.tags.length) ? ` • Tags: ${pin.tags.join(", ")}` : "";
       $("sbMeta").textContent =
         `${pin.lat.toFixed(6)}, ${pin.lng.toFixed(6)} • ${fmtDate(pin.createdAt)}${tagTxt}`;
+
+      const catKey = pin.category || "other";
+      const catLabel = (CAT_DEFAULTS[catKey]?.label) || "Other";
+      $("sbCat").textContent = catLabel;
+      $("sbIcon").textContent = pin.icon || "📍";
+      $("sbColorDot").style.background = pin.color || "#6aa7ff";
 
       const photoIds = pin.photoIds || [];
       $("sbPhotoCount").textContent = photoIds.length ? `${photoIds.length} photo(s)` : "No photos yet";
@@ -628,98 +865,13 @@
       }
 
       $("sidebar").classList.add("open");
-
-      // fly to pin
       map.flyTo({ center:[pin.lng, pin.lat], zoom: Math.max(map.getZoom(), 14), speed: 1.2, curve: 1.42 });
     }
+
     function closeSidebar(){
       $("sidebar").classList.remove("open");
       currentPin = null;
       revokeObjectUrls();
-    }
-
-    /*********************
-     * Lightbox
-     *********************/
-    function openLightbox(url){
-      $("lightboxImg").src = url;
-      $("lightbox").classList.add("open");
-    }
-    function closeLightbox(){
-      $("lightbox").classList.remove("open");
-      $("lightboxImg").src = "";
-    }
-
-    /*********************
-     * Photos + pin save
-     *********************/
-    async function storeFilesAsPhotos(files){
-      const ids = [];
-      for (const file of files){
-        if (file.size > 12 * 1024 * 1024){
-          alert(`Skipped ${file.name} (over 12MB).`);
-          continue;
-        }
-        const id = uid();
-        await dbPut("photos", { id, blob: file, name: file.name, type: file.type, createdAt: Date.now() });
-        ids.push(id);
-      }
-      return ids;
-    }
-
-    async function savePinFromModal(){
-      if (!pendingLatLng) return;
-
-      const title = $("pinTitle").value.trim();
-      const notes = $("pinNotes").value.trim();
-      const tags  = $("pinTags").value.split(",").map(s=>s.trim()).filter(Boolean);
-      const files = Array.from($("pinPhotos").files || []);
-
-      if (!title && !notes && !files.length) {
-        alert("Add at least a title, notes, or a photo.");
-        return;
-      }
-
-      if (isEditMode && currentPin){
-        const updated = {
-          ...currentPin,
-          title, notes, tags,
-          lat: pendingLatLng.lat,
-          lng: pendingLatLng.lng,
-          updatedAt: Date.now()
-        };
-
-        if (files.length){
-          const newPhotoIds = await storeFilesAsPhotos(files);
-          updated.photoIds = [...(updated.photoIds||[]), ...newPhotoIds];
-        }
-
-        await dbPut("pins", updated);
-        closePinModal();
-        await refreshPinsOnMap($("pinSearch").value);
-        await openSidebar(updated.id);
-        return;
-      }
-
-      const pinId = uid();
-      const createdAt = Date.now();
-      const photoIds = files.length ? await storeFilesAsPhotos(files) : [];
-
-      const pin = {
-        id: pinId,
-        lat: pendingLatLng.lat,
-        lng: pendingLatLng.lng,
-        title,
-        notes,
-        tags,
-        createdAt,
-        photoIds
-      };
-
-      await dbPut("pins", pin);
-      closePinModal();
-      await refreshPinsOnMap($("pinSearch").value);
-      await openSidebar(pinId);
     }
 
     async function addPhotosToCurrentPin(){
@@ -739,7 +891,7 @@
       await dbPut("pins", updated);
       $("sbAddPhotos").value = "";
       await openSidebar(updated.id);
-      await refreshPinsOnMap($("pinSearch").value);
+      await refreshPinsOnMap();
     }
 
     async function deleteCurrentPin(){
@@ -752,11 +904,145 @@
       await dbDelete("pins", currentPin.id);
 
       closeSidebar();
-      await refreshPinsOnMap($("pinSearch").value);
+      await refreshPinsOnMap();
     }
 
     /*********************
-     * Export / Import (portable)
+     * Lightbox
+     *********************/
+    function openLightbox(url){
+      $("lightboxImg").src = url;
+      $("lightbox").classList.add("open");
+    }
+    function closeLightbox(){
+      $("lightbox").classList.remove("open");
+      $("lightboxImg").src = "";
+    }
+
+    /*********************
+     * Apple-style search (MapTiler Geocoding)
+     *********************/
+    function closeDropdown(){
+      $("dropdown").classList.remove("open");
+      $("dropdown").innerHTML = "";
+    }
+
+    function openSearchCard(feature){
+      $("scTitle").textContent = feature?.name || "Result";
+      $("scSub").textContent = feature?.full || "";
+      $("searchCard").classList.add("open");
+    }
+
+    function closeSearchCard(){
+      $("searchCard").classList.remove("open");
+      selectedSearch = null;
+      if (searchMarker) { searchMarker.remove(); searchMarker = null; }
+    }
+
+    // Use CA bounds to bias + filter results
+    async function maptilerSearch(query){
+      const q = (query || "").trim();
+      if (q.length < 2) { closeDropdown(); return; }
+
+      // MapTiler Geocoding endpoint:
+      // https://api.maptiler.com/geocoding/{query}.json?key=...&limit=...
+      const url = `https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${MAPTILER_KEY}&limit=8&country=us`;
+
+      let data;
+      try{
+        const res = await fetch(url);
+        data = await res.json();
+      } catch {
+        closeDropdown();
+        return;
+      }
+
+      const feats = (data && data.features) ? data.features : [];
+
+      // Keep only results inside CA bounds
+      const inCA = feats
+        .map(f => {
+          const [lng, lat] = f.center || f.geometry?.coordinates || [];
+          return { f, lng, lat };
+        })
+        .filter(x => typeof x.lng === "number" && typeof x.lat === "number" && isInCA(x.lng, x.lat));
+
+      const dd = $("dropdown");
+      dd.innerHTML = "";
+
+      const head = document.createElement("div");
+      head.className = "dd-head";
+      head.innerHTML = `<div class="muted">Results in California</div><button class="btn ghost" id="ddCloseBtn" style="padding:7px 10px;">Close</button>`;
+      dd.appendChild(head);
+
+      setTimeout(() => {
+        const b = $("ddCloseBtn");
+        if (b) b.onclick = () => closeDropdown();
+      }, 0);
+
+      if (!inCA.length){
+        const none = document.createElement("div");
+        none.className = "dd-item";
+        none.innerHTML = `<div style="width:100%"><div class="dd-title">No results in California</div><div class="dd-sub">Try adding city name (e.g., “Target Fresno”).</div></div>`;
+        dd.appendChild(none);
+        dd.classList.add("open");
+        return;
+      }
+
+      for (const item of inCA){
+        const f = item.f;
+
+        const placeName =
+          f.place_name ||
+          f.text ||
+          f.properties?.name ||
+          "Result";
+
+        const nameTop = (f.text || placeName).split(",")[0] || placeName;
+        const full = placeName;
+
+        // simple icon guess
+        const icon = (f.place_type && f.place_type.includes("address")) ? "🏠"
+                   : (f.place_type && f.place_type.includes("poi")) ? "📍"
+                   : (f.place_type && f.place_type.includes("place")) ? "🏙️"
+                   : "📍";
+
+        const row = document.createElement("div");
+        row.className = "dd-item";
+        row.innerHTML = `
+          <div class="dd-ico">${icon}</div>
+          <div style="min-width:0;">
+            <div class="dd-title">${escapeHtml(nameTop)}</div>
+            <div class="dd-sub">${escapeHtml(full)}</div>
+          </div>
+        `;
+
+        row.onclick = () => {
+          closeDropdown();
+
+          selectedSearch = {
+            name: nameTop,
+            full,
+            lng: item.lng,
+            lat: item.lat
+          };
+
+          $("search").value = full;
+
+          setSearchMarker(item.lng, item.lat);
+          map.flyTo({ center:[item.lng, item.lat], zoom: 15.5, speed: 1.2, curve: 1.42 });
+
+          openSearchCard(selectedSearch);
+        };
+
+        dd.appendChild(row);
+      }
+
+      dd.classList.add("open");
+    }
+
+    /*********************
+     * Export / Import
      *********************/
     function blobToDataURL(blob){
       return new Promise((resolve, reject) => {
@@ -824,15 +1110,18 @@
         pin.createdAt = pin.createdAt || Date.now();
         pin.photoIds = pin.photoIds || [];
         pin.tags = pin.tags || [];
+        pin.category = pin.category || "other";
+        pin.color = pin.color || (CAT_DEFAULTS[pin.category]?.color || "#6aa7ff");
+        pin.icon = pin.icon || (CAT_DEFAULTS[pin.category]?.icon || "📍");
         await dbPut("pins", pin);
       }
 
-      await refreshPinsOnMap($("pinSearch").value);
+      await refreshPinsOnMap();
       alert("Import complete.");
     }
 
     /*********************
-     * Locate me
+     * Locate
      *********************/
     function locateMe(){
       if (!navigator.geolocation){
@@ -843,15 +1132,12 @@
         (pos) => {
           const { latitude, longitude } = pos.coords;
 
-          if (
-            longitude < CA_BOUNDS[0][0] || longitude > CA_BOUNDS[1][0] ||
-            latitude  < CA_BOUNDS[0][1] || latitude  > CA_BOUNDS[1][1]
-          ){
+          if (!isInCA(longitude, latitude)){
             alert("Your location appears outside California. The map is locked to CA.");
             return;
           }
 
-          map.flyTo({ center:[longitude, latitude], zoom: 14, speed: 1.2, curve: 1.42 });
+          map.flyTo({ center:[longitude, latitude], zoom: 14.5, speed: 1.2, curve: 1.42 });
         },
         () => alert("Couldn’t get your location. Check browser permissions."),
         { enableHighAccuracy:true, timeout: 10000 }
@@ -859,116 +1145,23 @@
     }
 
     /*********************
-     * Address search (CA-only) via Nominatim
-     *********************/
-    function closeDropdown(){
-      $("dropdown").classList.remove("open");
-      $("dropdown").innerHTML = "";
-    }
-
-    function setSearchMarker(lng, lat){
-      if (searchMarker) searchMarker.remove();
-      searchMarker = new maplibregl.Marker({ color: "#ffffff" })
-        .setLngLat([lng, lat])
-        .addTo(map);
-    }
-
-    async function geocodeCA(query){
-      const q = (query || "").trim();
-      if (q.length < 3) { closeDropdown(); return; }
-
-      const left = CA_BOUNDS[0][0];
-      const bottom = CA_BOUNDS[0][1];
-      const right = CA_BOUNDS[1][0];
-      const top = CA_BOUNDS[1][1];
-
-      const url =
-        "https://nominatim.openstreetmap.org/search?" +
-        new URLSearchParams({
-          format: "json",
-          q,
-          addressdetails: "1",
-          limit: "7",
-          bounded: "1",
-          viewbox: `${left},${top},${right},${bottom}`
-        }).toString();
-
-      let results = [];
-      try{
-        const res = await fetch(url, { headers: { "Accept": "application/json" } });
-        results = await res.json();
-      } catch {
-        closeDropdown();
-        return;
-      }
-
-      const dd = $("dropdown");
-      dd.innerHTML = "";
-
-      if (!results.length){
-        dd.innerHTML = `<div class="dd-item"><div class="dd-title">No results in California</div><div class="dd-sub">Try a more specific address/city.</div></div>`;
-        dd.classList.add("open");
-        return;
-      }
-
-      for (const r of results){
-        const lat = Number(r.lat);
-        const lng = Number(r.lon);
-        const label = r.display_name || "Result";
-
-        const item = document.createElement("div");
-        item.className = "dd-item";
-        item.innerHTML = `
-          <div class="dd-title">${escapeHtml(label.split(",").slice(0,2).join(", "))}</div>
-          <div class="dd-sub">${escapeHtml(label)}</div>
-        `;
-
-        item.onclick = () => {
-          closeDropdown();
-          $("addr").value = label;
-
-          lastGeocode = { lat, lng, label };
-          setSearchMarker(lng, lat);
-
-          map.flyTo({ center:[lng, lat], zoom: 15, speed: 1.2, curve: 1.42 });
-
-          setTimeout(() => {
-            const makePin = confirm("Jumped to this address. Add a user pin here?");
-            if (makePin){
-              openPinModal({ lat, lng }, null);
-              $("pinTitle").value = label;
-            }
-          }, 200);
-        };
-
-        dd.appendChild(item);
-      }
-
-      dd.classList.add("open");
-    }
-
-    /*********************
-     * Wire up UI
+     * Wire UI
      *********************/
     function wireUI(){
-      $("btnCloseSidebar").onclick = () => { closeSidebar(); };
-      $("btnModalClose").onclick = () => { closePinModal(); };
-      $("btnCancel").onclick = () => { closePinModal(); };
-      $("btnSavePin").onclick = () => { savePinFromModal(); };
+      $("btnCloseSidebar").onclick = () => closeSidebar();
+      $("btnModalClose").onclick = () => closePinModal();
+      $("btnCancel").onclick = () => closePinModal();
+      $("btnSavePin").onclick = () => savePinFromModal();
 
-      $("btnDeletePin").onclick = () => { deleteCurrentPin(); };
+      $("btnDeletePin").onclick = () => deleteCurrentPin();
       $("btnEditPin").onclick = () => {
         if (!currentPin) return;
         openPinModal({ lat: currentPin.lat, lng: currentPin.lng }, currentPin);
       };
 
-      $("btnAddPhotos").onclick = () => { addPhotosToCurrentPin(); };
+      $("btnAddPhotos").onclick = () => addPhotosToCurrentPin();
 
       $("lightbox").addEventListener("click", () => closeLightbox());
-
-      $("pinSearch").addEventListener("input", async (e) => {
-        await refreshPinsOnMap(e.target.value);
-      });
 
       $("btnLocate").onclick = () => locateMe();
       $("btnExport").onclick = () => exportAll();
@@ -986,30 +1179,42 @@
       $("btnHelp").onclick = () => {
         alert(
           "How to use:\n\n" +
-          "• Map is locked to California\n" +
-          "• Address search finds real places in CA and zooms there\n" +
-          "• Only YOUR pins are markers (businesses are just map labels)\n" +
-          "• Click map to add a pin + photos\n" +
-          "• Export/Import moves your data\n\n" +
-          "Tip: restrict your MapTiler key to your site domain."
+          "• Search for an address/business (Apple-style)\n" +
+          "• Tap a result → map flies there + Add Pin button appears\n" +
+          "• Click the map anywhere to add a pin too\n" +
+          "• Pins are customizable (category, color, emoji)\n" +
+          "• Photos are stored locally (this browser)\n"
         );
       };
 
-      $("addr").addEventListener("input", debounce((e) => geocodeCA(e.target.value), 300));
-      $("addr").addEventListener("focus", debounce((e) => geocodeCA(e.target.value), 150));
+      // Apple-style search input
+      $("search").addEventListener("input", debounce((e) => maptilerSearch(e.target.value), 250));
+      $("search").addEventListener("focus", debounce((e) => maptilerSearch(e.target.value), 120));
 
+      // Close dropdown if clicking outside
       document.addEventListener("click", (ev) => {
         const dd = $("dropdown");
-        const addr = $("addr");
-        if (!dd.contains(ev.target) && ev.target !== addr) closeDropdown();
+        const s  = $("search");
+        if (!dd.contains(ev.target) && ev.target !== s) closeDropdown();
       });
 
+      // Bottom card actions
+      $("btnClearResult").onclick = () => closeSearchCard();
+
+      $("btnAddPinHere").onclick = () => {
+        if (!selectedSearch) return;
+        openPinModal({ lat: selectedSearch.lat, lng: selectedSearch.lng }, null);
+        $("pinTitle").value = selectedSearch.full;
+      };
+
+      // ESC closes stuff
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
           closeDropdown();
           if ($("modal").classList.contains("open")) closePinModal();
           if ($("sidebar").classList.contains("open")) closeSidebar();
           if ($("lightbox").classList.contains("open")) closeLightbox();
+          if ($("searchCard").classList.contains("open")) closeSearchCard();
         }
       });
     }
@@ -1021,9 +1226,7 @@
       await openDB();
       initMap();
       wireUI();
-      await refreshPinsOnMap("");
-
-      setTimeout(() => { const h=$("hint"); if(h) h.style.display="none"; }, 6500);
+      await refreshPinsOnMap();
     })();
   </script>
 </body>
