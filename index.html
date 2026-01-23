@@ -1,11 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Cheese Map</title>
+  <meta charset="UTF-8" />
+  <title>CheeseMap</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- MapLibre CSS -->
+  <link
+    href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"
+    rel="stylesheet"
+  />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont;
+      background: #0b1220;
+      color: white;
+    }
+
+    header {
+      position: absolute;
+      z-index: 10;
+      top: 12px;
+      left: 12px;
+      background: rgba(15, 27, 51, 0.9);
+      padding: 10px 14px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+
+    #map {
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
 </head>
+
 <body>
-  <h1>🚀 CheeseMap is live</h1>
-  <p>If you see this, GitHub Pages is working.</p>
+  <header>
+    🧀 <strong>CheeseMap</strong>
+  </header>
+
+  <div id="map"></div>
+
+  <!-- MapLibre JS -->
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
+  <script>
+    const map = new maplibregl.Map({
+      container: "map",
+      style: "https://demotiles.maplibre.org/style.json",
+      center: [-119.7, 36.3], // California
+      zoom: 6,
+      pitch: 45,
+      bearing: -15
+    });
+
+    map.addControl(new maplibregl.NavigationControl(), "top-left");
+  </script>
 </body>
 </html>
