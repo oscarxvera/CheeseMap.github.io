@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>CheeseMap</title>
 
-  <!-- MapLibre -->
   <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
 
   <style>
@@ -70,6 +69,15 @@
       color: var(--text);
       outline:none;
     }
+    .select{
+      background: var(--panel2);
+      border:1px solid var(--border);
+      border-radius: 999px;
+      padding:9px 10px;
+      color: var(--text);
+      outline:none;
+      cursor:pointer;
+    }
     .btn{
       border:1px solid var(--border);
       background: var(--accent);
@@ -113,7 +121,7 @@
       position:absolute;
       top:46px;
       right:0;
-      width:min(420px, 90vw);
+      width:min(520px, 92vw);
       background: rgba(15,27,51,.96);
       border:1px solid var(--border);
       border-radius: 16px;
@@ -274,29 +282,32 @@
     <div class="brand">
       <span class="dot"></span>
       <span>CheeseMap</span>
-      <span class="muted small">• California only</span>
+      <span class="muted small">• California</span>
     </div>
 
     <div class="controls">
-      <!-- Address search (California-only) -->
+      <select id="styleSel" class="select" title="Map style">
+        <option value="streets">Streets</option>
+        <option value="dark">Dark</option>
+        <option value="satellite">Satellite</option>
+      </select>
+
       <input id="addr" class="input" type="text" placeholder="Search address / place (CA)..." autocomplete="off" />
       <div id="dropdown" class="dropdown"></div>
 
-      <!-- Pin search (your pins) -->
       <input id="pinSearch" class="input" type="text" placeholder="Search your pins..." />
 
-      <button id="btnLocate" class="btn ghost" title="Locate me">Locate</button>
-      <button id="btnExport" class="btn ghost" title="Export pins (and photos)">Export</button>
-      <button id="btnImport" class="btn ghost" title="Import pins">Import</button>
-      <button id="btnHelp" class="btn ghost" title="Help">Help</button>
+      <button id="btnLocate" class="btn ghost">Locate</button>
+      <button id="btnExport" class="btn ghost">Export</button>
+      <button id="btnImport" class="btn ghost">Import</button>
+      <button id="btnHelp" class="btn ghost">Help</button>
     </div>
   </div>
 
   <div class="hint" id="hint">
-    🗺️ Click the map to add a pin. Use the search to jump to an address in California.
+    🗺️ California-only map. Search an address, then click map to add a user pin + photos.
   </div>
 
-  <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-inner">
       <div class="sidebar-header">
@@ -323,13 +334,12 @@
           <div class="muted small">Add more photos</div>
           <input id="sbAddPhotos" type="file" accept="image/*" multiple />
           <button class="btn" id="btnAddPhotos">Upload to this pin</button>
-          <div class="muted small" id="sbUploadHint">Saved locally in this browser.</div>
+          <div class="muted small">Saved locally in this browser.</div>
         </div>
       </div>
     </div>
   </aside>
 
-  <!-- Modal: Add / Edit Pin -->
   <div class="modal" id="modal">
     <div class="modal-card">
       <div class="modal-head">
@@ -356,7 +366,7 @@
         <div>
           <label>Photos (optional)</label>
           <input id="pinPhotos" type="file" accept="image/*" multiple />
-          <div class="muted small">Tip: photos are stored locally (IndexedDB) so they persist after refresh.</div>
+          <div class="muted small">Stored locally (IndexedDB) so they persist after refresh.</div>
         </div>
 
         <div class="muted small" id="pinCoords"></div>
@@ -368,7 +378,6 @@
     </div>
   </div>
 
-  <!-- Lightbox -->
   <div class="lightbox" id="lightbox">
     <img id="lightboxImg" alt="Photo preview" />
   </div>
@@ -376,42 +385,42 @@
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
   <script>
-    /***************
-     * IMPORTANT: Fancy Apple/Google-like POI labels depend on the map STYLE.
-     *
-     * Option A (no key; decent labels, not as rich):
-     *   STYLE_URL = "https://demotiles.maplibre.org/style.json"
-     *
-     * Option B (recommended; more “real map” feel + richer labels):
-     *   Create a free MapTiler account and set MAPTILER_KEY below.
-     *   STYLE_URL = `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`
-     ***************/
-    const MAPTILER_KEY = ""; // <-- optional (recommended). Paste key here.
-    const STYLE_URL = MAPTILER_KEY
-      ? `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`
-      : "https://demotiles.maplibre.org/style.json";
+    /*********************
+     * MapTiler styles
+     *********************/
+    const MAPTILER_KEY = "rreP1kJx0CQWSnrve5pW";
 
-    /***************
-     * California bounds (approx)
-     ***************/
+    const STYLES = {
+      streets: `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`,
+      dark: `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MAPTILER_KEY}`,
+      satellite: `https://api.maptiler.com/maps/satellite/style.json?key=${MAPTILER_KEY}`
+    };
+
+    /*********************
+     * California bounds
+     *********************/
     const CA_BOUNDS = [
-      [-124.482003, 32.528832], // SW (near CA/MX + coast)
-      [-114.131211, 42.009518]  // NE (near CA/OR + NV)
+      [-124.482003, 32.528832],
+      [-114.131211, 42.009518]
     ];
 
-    /***************
+    /*********************
      * Helpers
-     ***************/
+     *********************/
     const $ = (id) => document.getElementById(id);
     const fmtDate = (ms) => { try { return new Date(ms).toLocaleString(); } catch { return ""; } };
     const uid = () => (crypto?.randomUUID ? crypto.randomUUID() : ("id-" + Math.random().toString(16).slice(2) + Date.now()));
-    const debounce = (fn, ms=250) => {
-      let t; return (...args) => { clearTimeout(t); t=setTimeout(()=>fn(...args), ms); };
-    };
+    const debounce = (fn, ms=250) => { let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; };
 
-    /***************
-     * IndexedDB (pins + photo blobs)
-     ***************/
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, (c) => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[c]));
+    }
+
+    /*********************
+     * IndexedDB
+     *********************/
     const DB_NAME = "cheesemap_db";
     const DB_VER = 1;
     let db;
@@ -458,11 +467,11 @@
       });
     }
 
-    /***************
+    /*********************
      * App state
-     ***************/
+     *********************/
     let map;
-    let markers = new Map(); // pinId -> Marker
+    let markers = new Map();
     let currentPin = null;
     let pendingLatLng = null;
     let isEditMode = false;
@@ -473,17 +482,17 @@
       activeObjectUrls = [];
     }
 
-    // Search selected location marker (not saved)
+    // Search marker (not saved)
     let searchMarker = null;
-    let lastGeocode = null; // {lat,lng,label}
+    let lastGeocode = null;
 
-    /***************
-     * Map init (California-only)
-     ***************/
+    /*********************
+     * Map init (CA-only)
+     *********************/
     function initMap(){
       map = new maplibregl.Map({
         container: "map",
-        style: STYLE_URL,
+        style: STYLES.streets,
         bounds: CA_BOUNDS,
         fitBoundsOptions: { padding: 40, maxZoom: 12 },
         pitch: 45,
@@ -491,31 +500,35 @@
         antialias: true
       });
 
-      // Lock panning/zooming to CA
       map.setMaxBounds(CA_BOUNDS);
-      map.setMinZoom(5);      // keeps you “in CA”
+      map.setMinZoom(5);
       map.setMaxZoom(20);
 
       map.addControl(new maplibregl.NavigationControl({ visualizePitch:true }), "top-left");
       map.addControl(new maplibregl.FullscreenControl(), "top-left");
 
-      // Only user-added pins are markers.
-      // Base map will show labels/POIs depending on style.
       map.on("click", (e) => {
-        // If user clicked while dropdown open, close it
         closeDropdown();
-
-        // Add new user pin
         openPinModal({ lat: e.lngLat.lat, lng: e.lngLat.lng }, null);
-
-        // If they just searched an address, prefill title with it
         if (lastGeocode?.label) $("pinTitle").value = lastGeocode.label;
+      });
+
+      // Style switcher
+      $("styleSel").addEventListener("change", () => {
+        const v = $("styleSel").value;
+        map.setStyle(STYLES[v] || STYLES.streets);
+
+        // Re-add markers after style loads
+        map.once("styledata", async () => {
+          await refreshPinsOnMap($("pinSearch").value);
+          if (searchMarker && lastGeocode) setSearchMarker(lastGeocode.lng, lastGeocode.lat);
+        });
       });
     }
 
-    /***************
-     * UI: Modal
-     ***************/
+    /*********************
+     * Modal
+     *********************/
     function openPinModal(latlng, pinToEdit){
       pendingLatLng = latlng;
       isEditMode = !!pinToEdit;
@@ -536,9 +549,9 @@
       isEditMode = false;
     }
 
-    /***************
-     * Pins: render
-     ***************/
+    /*********************
+     * Pins on map
+     *********************/
     function clearMarkers(){
       for (const m of markers.values()) m.remove();
       markers.clear();
@@ -556,7 +569,6 @@
 
       markers.set(pin.id, marker);
     }
-
     async function refreshPinsOnMap(filterText=""){
       const pins = await dbGetAllPins();
       const q = (filterText || "").trim().toLowerCase();
@@ -572,9 +584,9 @@
       for (const pin of filtered) addMarkerForPin(pin);
     }
 
-    /***************
+    /*********************
      * Sidebar
-     ***************/
+     *********************/
     async function openSidebar(pinId){
       revokeObjectUrls();
 
@@ -616,6 +628,9 @@
       }
 
       $("sidebar").classList.add("open");
+
+      // fly to pin
+      map.flyTo({ center:[pin.lng, pin.lat], zoom: Math.max(map.getZoom(), 14), speed: 1.2, curve: 1.42 });
     }
     function closeSidebar(){
       $("sidebar").classList.remove("open");
@@ -623,9 +638,9 @@
       revokeObjectUrls();
     }
 
-    /***************
+    /*********************
      * Lightbox
-     ***************/
+     *********************/
     function openLightbox(url){
       $("lightboxImg").src = url;
       $("lightbox").classList.add("open");
@@ -635,9 +650,9 @@
       $("lightboxImg").src = "";
     }
 
-    /***************
-     * Create / Edit pin
-     ***************/
+    /*********************
+     * Photos + pin save
+     *********************/
     async function storeFilesAsPhotos(files){
       const ids = [];
       for (const file of files){
@@ -702,7 +717,6 @@
       };
 
       await dbPut("pins", pin);
-
       closePinModal();
       await refreshPinsOnMap($("pinSearch").value);
       await openSidebar(pinId);
@@ -741,9 +755,9 @@
       await refreshPinsOnMap($("pinSearch").value);
     }
 
-    /***************
-     * Export / Import
-     ***************/
+    /*********************
+     * Export / Import (portable)
+     *********************/
     function blobToDataURL(blob){
       return new Promise((resolve, reject) => {
         const r = new FileReader();
@@ -817,9 +831,9 @@
       alert("Import complete.");
     }
 
-    /***************
+    /*********************
      * Locate me
-     ***************/
+     *********************/
     function locateMe(){
       if (!navigator.geolocation){
         alert("Geolocation not available in this browser.");
@@ -829,7 +843,6 @@
         (pos) => {
           const { latitude, longitude } = pos.coords;
 
-          // Clamp to CA bounds-ish: if outside, just warn
           if (
             longitude < CA_BOUNDS[0][0] || longitude > CA_BOUNDS[1][0] ||
             latitude  < CA_BOUNDS[0][1] || latitude  > CA_BOUNDS[1][1]
@@ -845,12 +858,9 @@
       );
     }
 
-    /***************
-     * Address search (California-only) via Nominatim
-     * - Autocomplete dropdown
-     * - Fly to selected result
-     * - No pins created unless user adds one
-     ***************/
+    /*********************
+     * Address search (CA-only) via Nominatim
+     *********************/
     function closeDropdown(){
       $("dropdown").classList.remove("open");
       $("dropdown").innerHTML = "";
@@ -867,8 +877,6 @@
       const q = (query || "").trim();
       if (q.length < 3) { closeDropdown(); return; }
 
-      // California bounding box for Nominatim:
-      // viewbox = left,top,right,bottom
       const left = CA_BOUNDS[0][0];
       const bottom = CA_BOUNDS[0][1];
       const right = CA_BOUNDS[1][0];
@@ -880,7 +888,7 @@
           format: "json",
           q,
           addressdetails: "1",
-          limit: "6",
+          limit: "7",
           bounded: "1",
           viewbox: `${left},${top},${right},${bottom}`
         }).toString();
@@ -924,14 +932,13 @@
 
           map.flyTo({ center:[lng, lat], zoom: 15, speed: 1.2, curve: 1.42 });
 
-          // Optional: prompt user to create pin at this address
           setTimeout(() => {
             const makePin = confirm("Jumped to this address. Add a user pin here?");
             if (makePin){
               openPinModal({ lat, lng }, null);
               $("pinTitle").value = label;
             }
-          }, 250);
+          }, 200);
         };
 
         dd.appendChild(item);
@@ -940,39 +947,31 @@
       dd.classList.add("open");
     }
 
-    function escapeHtml(s){
-      return String(s).replace(/[&<>"']/g, (c) => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-      }[c]));
-    }
-
-    /***************
+    /*********************
      * Wire up UI
-     ***************/
+     *********************/
     function wireUI(){
-      $("btnCloseSidebar").onclick = closeSidebar;
+      $("btnCloseSidebar").onclick = () => { closeSidebar(); };
+      $("btnModalClose").onclick = () => { closePinModal(); };
+      $("btnCancel").onclick = () => { closePinModal(); };
+      $("btnSavePin").onclick = () => { savePinFromModal(); };
 
-      $("btnModalClose").onclick = closePinModal;
-      $("btnCancel").onclick = closePinModal;
-      $("btnSavePin").onclick = savePinFromModal;
-
-      $("btnDeletePin").onclick = deleteCurrentPin;
-
-      $("btnEditPin").onclick = async () => {
+      $("btnDeletePin").onclick = () => { deleteCurrentPin(); };
+      $("btnEditPin").onclick = () => {
         if (!currentPin) return;
         openPinModal({ lat: currentPin.lat, lng: currentPin.lng }, currentPin);
       };
 
-      $("btnAddPhotos").onclick = addPhotosToCurrentPin;
+      $("btnAddPhotos").onclick = () => { addPhotosToCurrentPin(); };
 
-      $("lightbox").addEventListener("click", closeLightbox);
+      $("lightbox").addEventListener("click", () => closeLightbox());
 
       $("pinSearch").addEventListener("input", async (e) => {
         await refreshPinsOnMap(e.target.value);
       });
 
-      $("btnLocate").onclick = locateMe;
-      $("btnExport").onclick = exportAll;
+      $("btnLocate").onclick = () => locateMe();
+      $("btnExport").onclick = () => exportAll();
 
       $("btnImport").onclick = () => {
         const input = document.createElement("input");
@@ -988,26 +987,23 @@
         alert(
           "How to use:\n\n" +
           "• Map is locked to California\n" +
-          "• Use address search to jump to a location\n" +
-          "• Click map to add a pin (only user pins appear as markers)\n" +
-          "• Click a pin to open sidebar + photos\n" +
-          "• Data is saved locally in THIS browser\n\n" +
-          "Note: How many business labels you see depends on the map style."
+          "• Address search finds real places in CA and zooms there\n" +
+          "• Only YOUR pins are markers (businesses are just map labels)\n" +
+          "• Click map to add a pin + photos\n" +
+          "• Export/Import moves your data\n\n" +
+          "Tip: restrict your MapTiler key to your site domain."
         );
       };
 
-      // Address search autocomplete
       $("addr").addEventListener("input", debounce((e) => geocodeCA(e.target.value), 300));
       $("addr").addEventListener("focus", debounce((e) => geocodeCA(e.target.value), 150));
 
-      // Close dropdown on outside click
       document.addEventListener("click", (ev) => {
         const dd = $("dropdown");
         const addr = $("addr");
         if (!dd.contains(ev.target) && ev.target !== addr) closeDropdown();
       });
 
-      // ESC closes dropdown/modal/sidebar
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
           closeDropdown();
@@ -1018,9 +1014,9 @@
       });
     }
 
-    /***************
+    /*********************
      * Boot
-     ***************/
+     *********************/
     (async function boot(){
       await openDB();
       initMap();
