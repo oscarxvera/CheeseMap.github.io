@@ -1,63 +1,889 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>CheeseMap</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- MapLibre CSS -->
-  <link
-    href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"
-    rel="stylesheet"
-  />
+  <!-- MapLibre -->
+  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
 
   <style>
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont;
-      background: #0b1220;
-      color: white;
+    :root{
+      --bg:#0b1220;
+      --panel: rgba(15,27,51,.92);
+      --panel2: rgba(255,255,255,.06);
+      --border: rgba(255,255,255,.10);
+      --text:#eaf1ff;
+      --muted:#9bb0d0;
+      --accent:#6aa7ff;
+      --danger:#ff6a7a;
+      --shadow: 0 14px 40px rgba(0,0,0,.38);
+      --r: 18px;
+    }
+    *{box-sizing:border-box}
+    html, body {height:100%}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      overflow:hidden;
     }
 
-    header {
-      position: absolute;
-      z-index: 10;
-      top: 12px;
-      left: 12px;
-      background: rgba(15, 27, 51, 0.9);
-      padding: 10px 14px;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    /* Map */
+    #map{position:fixed; inset:0}
+
+    /* Top bar */
+    .topbar{
+      position:fixed; top:12px; left:12px; right:12px;
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      z-index:10;
+      padding:10px 12px;
+      background: rgba(11,18,32,.65);
+      border:1px solid var(--border);
+      border-radius: 999px;
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+    }
+    .brand{
+      display:flex; gap:10px; align-items:center;
+      font-weight:800; letter-spacing:.2px;
+      padding-left:6px;
+      white-space:nowrap;
+    }
+    .brand .dot{
+      width:10px; height:10px; border-radius:99px;
+      background: var(--accent);
+      box-shadow: 0 0 18px rgba(106,167,255,.55);
+    }
+    .controls{
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .input{
+      width:min(320px, 48vw);
+      background: var(--panel2);
+      border:1px solid var(--border);
+      border-radius: 999px;
+      padding:9px 12px;
+      color: var(--text);
+      outline:none;
+    }
+    .btn{
+      border:1px solid var(--border);
+      background: var(--accent);
+      color:#071126;
+      font-weight:800;
+      padding:9px 12px;
+      border-radius: 999px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .btn.ghost{
+      background: var(--panel2);
+      color: var(--text);
+      font-weight:700;
+    }
+    .btn.danger{
+      background: rgba(255,106,122,.18);
+      color: var(--text);
+      border-color: rgba(255,106,122,.35);
+    }
+    .btn:active{transform: translateY(1px)}
+
+    /* Hint chip */
+    .hint{
+      position:fixed;
+      left:12px; bottom:12px;
+      z-index:10;
+      padding:10px 12px;
+      background: var(--panel);
+      border:1px solid var(--border);
+      border-radius: 999px;
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+      color: var(--muted);
+      font-size: 13px;
+      display:flex; align-items:center; gap:8px;
+      max-width: calc(100vw - 24px);
     }
 
-    #map {
-      width: 100vw;
-      height: 100vh;
+    /* Sidebar */
+    .sidebar{
+      position:fixed;
+      top:76px;
+      right:12px;
+      width: 380px;
+      max-width: calc(100vw - 24px);
+      height: calc(100vh - 88px);
+      z-index:10;
+      background: var(--panel);
+      border:1px solid var(--border);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      overflow:hidden;
+      display:none;
+    }
+    .sidebar.open{display:block}
+    .sidebar-inner{
+      height:100%;
+      display:flex;
+      flex-direction:column;
+    }
+    .sidebar-header{
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--border);
+      display:flex; gap:10px; align-items:flex-start; justify-content:space-between;
+    }
+    .titleblock h2{
+      margin:0; font-size:18px;
+      line-height:1.2;
+    }
+    .muted{color:var(--muted)}
+    .small{font-size:12px}
+    .sidebar-actions{display:flex; gap:8px; align-items:center}
+    .sidebar-body{
+      padding:14px;
+      overflow:auto;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .card{
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--border);
+      border-radius: 16px;
+      padding:12px;
+    }
+    .kv{display:flex; flex-direction:column; gap:6px}
+    .gallery{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:10px;
+    }
+    .thumb{
+      width:100%;
+      height:140px;
+      object-fit:cover;
+      border-radius: 14px;
+      border:1px solid var(--border);
+      cursor:pointer;
+      background: rgba(0,0,0,.2);
+    }
+
+    /* Modal */
+    .modal{
+      position:fixed; inset:0;
+      z-index:20;
+      display:none;
+      align-items:center; justify-content:center;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(6px);
+      padding:14px;
+    }
+    .modal.open{display:flex}
+    .modal-card{
+      width: 560px;
+      max-width: calc(100vw - 24px);
+      background: rgba(15,27,51,.96);
+      border:1px solid var(--border);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modal-head{
+      padding:14px;
+      display:flex; align-items:center; justify-content:space-between;
+      border-bottom:1px solid var(--border);
+    }
+    .modal-head h3{margin:0; font-size:16px}
+    .modal-body{padding:14px; display:flex; flex-direction:column; gap:10px}
+    label{font-size:12px; color:var(--muted)}
+    input[type="text"], textarea{
+      width:100%;
+      background: var(--panel2);
+      border:1px solid var(--border);
+      border-radius: 14px;
+      padding:10px 12px;
+      color: var(--text);
+      outline:none;
+    }
+    textarea{min-height:90px; resize:vertical}
+    .row{display:flex; gap:10px}
+    .row > *{flex:1}
+    .modal-actions{
+      padding:14px;
+      border-top:1px solid var(--border);
+      display:flex; gap:10px; justify-content:flex-end;
+    }
+
+    /* Lightbox */
+    .lightbox{
+      position:fixed; inset:0;
+      z-index:30;
+      display:none;
+      background: rgba(0,0,0,.78);
+      align-items:center; justify-content:center;
+      padding:16px;
+    }
+    .lightbox.open{display:flex}
+    .lightbox img{
+      max-width:min(980px, 100%);
+      max-height: 92vh;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow: var(--shadow);
+      background: rgba(0,0,0,.2);
+    }
+
+    /* Mobile tweaks */
+    @media (max-width: 720px){
+      .topbar{border-radius: 18px}
+      .controls{gap:6px}
+      .input{width:min(220px, 44vw)}
+      .sidebar{
+        left:12px;
+        right:12px;
+        width:auto;
+        top:76px;
+      }
+      .gallery{grid-template-columns: 1fr}
+      .thumb{height:180px}
     }
   </style>
 </head>
 
 <body>
-  <header>
-    🧀 <strong>CheeseMap</strong>
-  </header>
-
   <div id="map"></div>
 
-  <!-- MapLibre JS -->
+  <div class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <span>CheeseMap</span>
+      <span class="muted small">• pins + photos</span>
+    </div>
+
+    <div class="controls">
+      <input id="search" class="input" type="text" placeholder="Search pins (title/notes)..." />
+      <button id="btnLocate" class="btn ghost" title="Locate me">Locate</button>
+      <button id="btnExport" class="btn ghost" title="Export pins (and photos)">Export</button>
+      <button id="btnImport" class="btn ghost" title="Import pins">Import</button>
+      <button id="btnHelp" class="btn ghost" title="Help">Help</button>
+    </div>
+  </div>
+
+  <div class="hint" id="hint">
+    🗺️ Click anywhere on the map to drop a pin. Click a pin to open the sidebar.
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-inner">
+      <div class="sidebar-header">
+        <div class="titleblock">
+          <h2 id="sbTitle">Pin</h2>
+          <div class="muted" id="sbNotes"></div>
+          <div class="muted small" id="sbMeta"></div>
+        </div>
+        <div class="sidebar-actions">
+          <button class="btn ghost" id="btnEditPin">Edit</button>
+          <button class="btn danger" id="btnDeletePin">Delete</button>
+          <button class="btn ghost" id="btnCloseSidebar">✕</button>
+        </div>
+      </div>
+
+      <div class="sidebar-body">
+        <div class="card kv">
+          <div class="muted small">Photos</div>
+          <div id="sbPhotoCount" class="small muted"></div>
+          <div class="gallery" id="sbGallery"></div>
+        </div>
+
+        <div class="card kv">
+          <div class="muted small">Add more photos</div>
+          <input id="sbAddPhotos" type="file" accept="image/*" multiple />
+          <button class="btn" id="btnAddPhotos">Upload to this pin</button>
+          <div class="muted small" id="sbUploadHint">Saved locally in this browser.</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Modal: Add / Edit Pin -->
+  <div class="modal" id="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="modalTitle">New Pin</h3>
+        <button class="btn ghost" id="btnModalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div>
+            <label>Title</label>
+            <input id="pinTitle" type="text" placeholder="e.g., Ranch gate, work site, cool photo spot..." />
+          </div>
+          <div>
+            <label>Tags (optional)</label>
+            <input id="pinTags" type="text" placeholder="comma,separated,tags" />
+          </div>
+        </div>
+
+        <div>
+          <label>Notes</label>
+          <textarea id="pinNotes" placeholder="What happened here?"></textarea>
+        </div>
+
+        <div>
+          <label>Photos (optional)</label>
+          <input id="pinPhotos" type="file" accept="image/*" multiple />
+          <div class="muted small">Tip: photos are stored locally (IndexedDB) so they persist after refresh.</div>
+        </div>
+
+        <div class="muted small" id="pinCoords"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="btnCancel">Cancel</button>
+        <button class="btn" id="btnSavePin">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox">
+    <img id="lightboxImg" alt="Photo preview" />
+  </div>
+
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
   <script>
-    const map = new maplibregl.Map({
-      container: "map",
-      style: "https://demotiles.maplibre.org/style.json",
-      center: [-119.7, 36.3], // California
-      zoom: 6,
-      pitch: 45,
-      bearing: -15
-    });
+    /***************
+     * Helpers
+     ***************/
+    const $ = (id) => document.getElementById(id);
+    const fmtDate = (ms) => {
+      try { return new Date(ms).toLocaleString(); } catch { return ""; }
+    };
+    const uid = () => (crypto?.randomUUID ? crypto.randomUUID() : ("id-" + Math.random().toString(16).slice(2) + Date.now()));
 
-    map.addControl(new maplibregl.NavigationControl(), "top-left");
+    /***************
+     * IndexedDB (pins + photo blobs)
+     ***************/
+    const DB_NAME = "cheesemap_db";
+    const DB_VER = 1;
+    let db;
+
+    function openDB(){
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VER);
+        req.onupgradeneeded = () => {
+          const d = req.result;
+          if (!d.objectStoreNames.contains("pins")) {
+            const pins = d.createObjectStore("pins", { keyPath: "id" });
+            pins.createIndex("createdAt", "createdAt", { unique:false });
+          }
+          if (!d.objectStoreNames.contains("photos")) {
+            d.createObjectStore("photos", { keyPath: "id" });
+          }
+        };
+        req.onsuccess = () => { db = req.result; resolve(db); };
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function tx(store, mode="readonly"){
+      return db.transaction(store, mode).objectStore(store);
+    }
+
+    async function dbPut(store, value){
+      return new Promise((resolve, reject) => {
+        const req = tx(store, "readwrite").put(value);
+        req.onsuccess = () => resolve(true);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function dbGet(store, key){
+      return new Promise((resolve, reject) => {
+        const req = tx(store).get(key);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function dbDelete(store, key){
+      return new Promise((resolve, reject) => {
+        const req = tx(store, "readwrite").delete(key);
+        req.onsuccess = () => resolve(true);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function dbGetAllPins(){
+      return new Promise((resolve, reject) => {
+        const store = tx("pins");
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    /***************
+     * App state
+     ***************/
+    let map;
+    let markers = new Map(); // pinId -> Marker
+    let currentPin = null;   // active pin object
+    let pendingLatLng = null;
+    let isEditMode = false;
+
+    // object URLs so we can revoke them (avoid memory leak)
+    let activeObjectUrls = [];
+
+    function revokeObjectUrls(){
+      for (const u of activeObjectUrls) URL.revokeObjectURL(u);
+      activeObjectUrls = [];
+    }
+
+    /***************
+     * Map init
+     ***************/
+    function initMap(){
+      map = new maplibregl.Map({
+        container: "map",
+        style: "https://demotiles.maplibre.org/style.json", // no key required
+        center: [-119.7, 36.3],
+        zoom: 6.2,
+        pitch: 45,
+        bearing: -15,
+        antialias: true
+      });
+
+      map.addControl(new maplibregl.NavigationControl({ visualizePitch:true }), "top-left");
+      map.addControl(new maplibregl.FullscreenControl(), "top-left");
+
+      // Click map to create new pin
+      map.on("click", (e) => {
+        openPinModal({ lat: e.lngLat.lat, lng: e.lngLat.lng }, null);
+      });
+    }
+
+    /***************
+     * UI: Modal
+     ***************/
+    function openPinModal(latlng, pinToEdit){
+      pendingLatLng = latlng;
+      isEditMode = !!pinToEdit;
+
+      $("modalTitle").textContent = isEditMode ? "Edit Pin" : "New Pin";
+      $("pinCoords").textContent = `Coords: ${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
+
+      $("pinTitle").value = pinToEdit?.title || "";
+      $("pinTags").value  = (pinToEdit?.tags || []).join(", ");
+      $("pinNotes").value = pinToEdit?.notes || "";
+      $("pinPhotos").value = "";
+
+      $("modal").classList.add("open");
+    }
+
+    function closePinModal(){
+      $("modal").classList.remove("open");
+      pendingLatLng = null;
+      isEditMode = false;
+    }
+
+    /***************
+     * Pins: render
+     ***************/
+    function clearMarkers(){
+      for (const m of markers.values()) m.remove();
+      markers.clear();
+    }
+
+    function addMarkerForPin(pin){
+      const marker = new maplibregl.Marker({ color: "#6aa7ff" })
+        .setLngLat([pin.lng, pin.lat])
+        .addTo(map);
+
+      marker.getElement().style.cursor = "pointer";
+      marker.getElement().addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        openSidebar(pin.id);
+      });
+
+      markers.set(pin.id, marker);
+    }
+
+    async function refreshPinsOnMap(filterText=""){
+      const pins = await dbGetAllPins();
+      const q = (filterText || "").trim().toLowerCase();
+
+      clearMarkers();
+
+      const filtered = !q ? pins : pins.filter(p => {
+        const hay = `${p.title||""} ${p.notes||""} ${(p.tags||[]).join(" ")}`.toLowerCase();
+        return hay.includes(q);
+      });
+
+      // newest first
+      filtered.sort((a,b)=> (b.createdAt||0)-(a.createdAt||0));
+
+      for (const pin of filtered) addMarkerForPin(pin);
+    }
+
+    /***************
+     * Sidebar
+     ***************/
+    async function openSidebar(pinId){
+      revokeObjectUrls();
+
+      const pin = await dbGet("pins", pinId);
+      if (!pin) return;
+
+      currentPin = pin;
+
+      $("sbTitle").textContent = pin.title || "Pin";
+      $("sbNotes").textContent = pin.notes || "";
+      const tagTxt = (pin.tags && pin.tags.length) ? ` • Tags: ${pin.tags.join(", ")}` : "";
+      $("sbMeta").textContent =
+        `${pin.lat.toFixed(6)}, ${pin.lng.toFixed(6)} • ${fmtDate(pin.createdAt)}${tagTxt}`;
+
+      // Photos
+      const photoIds = pin.photoIds || [];
+      $("sbPhotoCount").textContent = photoIds.length ? `${photoIds.length} photo(s)` : "No photos yet";
+
+      const gallery = $("sbGallery");
+      gallery.innerHTML = "";
+
+      if (!photoIds.length){
+        gallery.innerHTML = `<div class="muted small">Upload photos for this pin using the box below.</div>`;
+      } else {
+        for (const pid of photoIds){
+          const photo = await dbGet("photos", pid);
+          if (!photo?.blob) continue;
+
+          const url = URL.createObjectURL(photo.blob);
+          activeObjectUrls.push(url);
+
+          const img = document.createElement("img");
+          img.className = "thumb";
+          img.src = url;
+          img.alt = "Photo";
+          img.loading = "lazy";
+          img.addEventListener("click", () => openLightbox(url));
+          gallery.appendChild(img);
+        }
+      }
+
+      $("sidebar").classList.add("open");
+    }
+
+    function closeSidebar(){
+      $("sidebar").classList.remove("open");
+      currentPin = null;
+      revokeObjectUrls();
+    }
+
+    /***************
+     * Lightbox
+     ***************/
+    function openLightbox(url){
+      $("lightboxImg").src = url;
+      $("lightbox").classList.add("open");
+    }
+    function closeLightbox(){
+      $("lightbox").classList.remove("open");
+      $("lightboxImg").src = "";
+    }
+
+    /***************
+     * Create / Edit pin
+     ***************/
+    async function savePinFromModal(){
+      if (!pendingLatLng) return;
+
+      const title = $("pinTitle").value.trim();
+      const notes = $("pinNotes").value.trim();
+      const tags  = $("pinTags").value.split(",").map(s=>s.trim()).filter(Boolean);
+      const files = Array.from($("pinPhotos").files || []);
+
+      if (!title && !notes && !files.length) {
+        alert("Add at least a title, notes, or a photo.");
+        return;
+      }
+
+      if (isEditMode && currentPin){
+        // Update pin fields (keep existing photos)
+        const updated = {
+          ...currentPin,
+          title, notes, tags,
+          lat: pendingLatLng.lat,
+          lng: pendingLatLng.lng,
+          updatedAt: Date.now()
+        };
+
+        // Add any new photos too
+        if (files.length){
+          const newPhotoIds = await storeFilesAsPhotos(files);
+          updated.photoIds = [...(updated.photoIds||[]), ...newPhotoIds];
+        }
+
+        await dbPut("pins", updated);
+        closePinModal();
+        await refreshPinsOnMap($("search").value);
+        await openSidebar(updated.id);
+        return;
+      }
+
+      // New pin
+      const pinId = uid();
+      const createdAt = Date.now();
+      const photoIds = files.length ? await storeFilesAsPhotos(files) : [];
+
+      const pin = {
+        id: pinId,
+        lat: pendingLatLng.lat,
+        lng: pendingLatLng.lng,
+        title,
+        notes,
+        tags,
+        createdAt,
+        photoIds
+      };
+
+      await dbPut("pins", pin);
+
+      closePinModal();
+      await refreshPinsOnMap($("search").value);
+      await openSidebar(pinId);
+    }
+
+    async function storeFilesAsPhotos(files){
+      const ids = [];
+      for (const file of files){
+        // Basic size guard (avoid enormous blobs)
+        if (file.size > 12 * 1024 * 1024){
+          alert(`Skipped ${file.name} (over 12MB).`);
+          continue;
+        }
+        const id = uid();
+        await dbPut("photos", { id, blob: file, name: file.name, type: file.type, createdAt: Date.now() });
+        ids.push(id);
+      }
+      return ids;
+    }
+
+    /***************
+     * Add photos from sidebar
+     ***************/
+    async function addPhotosToCurrentPin(){
+      if (!currentPin) return;
+      const files = Array.from($("sbAddPhotos").files || []);
+      if (!files.length) return alert("Choose one or more photos first.");
+
+      const newPhotoIds = await storeFilesAsPhotos(files);
+      if (!newPhotoIds.length) return;
+
+      const updated = {
+        ...currentPin,
+        photoIds: [...(currentPin.photoIds||[]), ...newPhotoIds],
+        updatedAt: Date.now()
+      };
+
+      await dbPut("pins", updated);
+      $("sbAddPhotos").value = "";
+      await openSidebar(updated.id);
+      await refreshPinsOnMap($("search").value);
+    }
+
+    /***************
+     * Delete pin
+     ***************/
+    async function deleteCurrentPin(){
+      if (!currentPin) return;
+      if (!confirm("Delete this pin? (Photos for this pin will also be removed)")) return;
+
+      // delete photos
+      for (const pid of (currentPin.photoIds || [])){
+        await dbDelete("photos", pid);
+      }
+      await dbDelete("pins", currentPin.id);
+
+      closeSidebar();
+      await refreshPinsOnMap($("search").value);
+    }
+
+    /***************
+     * Export / Import
+     ***************/
+    async function exportAll(){
+      const pins = await dbGetAllPins();
+
+      // Include photos as base64 so export is portable
+      const photos = {};
+      for (const p of pins){
+        for (const pid of (p.photoIds||[])){
+          if (photos[pid]) continue;
+          const rec = await dbGet("photos", pid);
+          if (!rec?.blob) continue;
+          photos[pid] = {
+            name: rec.name || "photo",
+            type: rec.type || "image/jpeg",
+            dataUrl: await blobToDataURL(rec.blob)
+          };
+        }
+      }
+
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        pins,
+        photos
+      };
+
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type:"application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `cheesemap-export-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function blobToDataURL(blob){
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.onerror = () => reject(r.error);
+        r.readAsDataURL(blob);
+      });
+    }
+
+    function dataURLToBlob(dataUrl){
+      const [meta, data] = dataUrl.split(",");
+      const mime = (meta.match(/data:(.*);base64/) || [])[1] || "application/octet-stream";
+      const bin = atob(data);
+      const arr = new Uint8Array(bin.length);
+      for (let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+      return new Blob([arr], { type: mime });
+    }
+
+    async function importFromFile(file){
+      const text = await file.text();
+      const payload = JSON.parse(text);
+
+      if (!payload?.pins || !Array.isArray(payload.pins)){
+        alert("Invalid import file.");
+        return;
+      }
+
+      // Write photos first
+      const photos = payload.photos || {};
+      for (const pid of Object.keys(photos)){
+        const rec = photos[pid];
+        if (!rec?.dataUrl) continue;
+        const blob = dataURLToBlob(rec.dataUrl);
+        await dbPut("photos", { id: pid, blob, name: rec.name, type: rec.type, createdAt: Date.now() });
+      }
+
+      // Write pins
+      for (const pin of payload.pins){
+        // Ensure required fields
+        if (!pin.id) pin.id = uid();
+        if (typeof pin.lat !== "number" || typeof pin.lng !== "number") continue;
+        pin.createdAt = pin.createdAt || Date.now();
+        pin.photoIds = pin.photoIds || [];
+        pin.tags = pin.tags || [];
+        await dbPut("pins", pin);
+      }
+
+      await refreshPinsOnMap($("search").value);
+      alert("Import complete.");
+    }
+
+    /***************
+     * Locate me
+     ***************/
+    function locateMe(){
+      if (!navigator.geolocation){
+        alert("Geolocation not available in this browser.");
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          map.flyTo({ center:[longitude, latitude], zoom: 14, speed: 1.2, curve: 1.42 });
+        },
+        () => alert("Couldn’t get your location. Check browser permissions."),
+        { enableHighAccuracy:true, timeout: 10000 }
+      );
+    }
+
+    /***************
+     * Wire up UI
+     ***************/
+    function wireUI(){
+      $("btnCloseSidebar").onclick = closeSidebar;
+
+      $("btnModalClose").onclick = closePinModal;
+      $("btnCancel").onclick = closePinModal;
+      $("btnSavePin").onclick = savePinFromModal;
+
+      $("btnDeletePin").onclick = deleteCurrentPin;
+
+      $("btnEditPin").onclick = async () => {
+        if (!currentPin) return;
+        // Edit pin: open modal, prefill, keep lat/lng
+        openPinModal({ lat: currentPin.lat, lng: currentPin.lng }, currentPin);
+      };
+
+      $("btnAddPhotos").onclick = addPhotosToCurrentPin;
+
+      $("lightbox").addEventListener("click", closeLightbox);
+
+      $("search").addEventListener("input", async (e) => {
+        await refreshPinsOnMap(e.target.value);
+      });
+
+      $("btnLocate").onclick = locateMe;
+
+      $("btnExport").onclick = exportAll;
+
+      $("btnImport").onclick = () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "application/json";
+        input.onchange = async () => {
+          if (input.files?.[0]) await importFromFile(input.files[0]);
+        };
+        input.click();
+      };
+
+      $("btnHelp").onclick = () => {
+        alert(
+          "How to use:\n\n" +
+          "• Click the map to add a pin\n" +
+          "• Click a pin to open the sidebar\n" +
+          "• Upload photos to a pin\n" +
+          "• Search pins with the search bar\n" +
+          "• Export/Import to move your data\n\n" +
+          "Note: Data is saved locally in THIS browser."
+        );
+      };
+    }
+
+    /***************
+     * Boot
+     ***************/
+    (async function boot(){
+      await openDB();
+      initMap();
+      wireUI();
+      await refreshPinsOnMap("");
+
+      // Hide the hint after a few seconds
+      setTimeout(() => { const h=$("hint"); if(h) h.style.display="none"; }, 6500);
+    })();
   </script>
 </body>
 </html>
