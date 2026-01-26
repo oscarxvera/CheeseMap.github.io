@@ -103,9 +103,17 @@
       display:flex;
       align-items:center;
       gap:8px;
-      min-width: min(520px, 58vw);
-      max-width: min(720px, 70vw);
+      min-width: min(560px, 62vw);
+      max-width: min(820px, 72vw);
       flex: 1 1 auto;
+    }
+
+    .searchGroup{
+      position:relative;
+      width:100%;
+      display:flex;
+      align-items:center;
+      gap:8px;
     }
 
     .search{
@@ -181,12 +189,12 @@
     }
     .btn:active{transform: translateY(1px)}
 
-    /* Hide/Show pill (we will move it via JS so it never covers search) */
+    /* Hide/Show pill */
     .togglePill{
       pointer-events:auto;
       position:fixed;
       right:14px;
-      top:76px; /* default: below search bar */
+      top:76px;
       z-index:11;
 
       display:flex;
@@ -218,9 +226,9 @@
     /* Dropdown */
     .dropdown{
       position:absolute;
-      top:50px;
+      top:56px; /* a touch lower so it doesn't feel cramped */
       right:0;
-      width:min(560px, 92vw);
+      width:min(620px, 92vw);
       background: rgba(15,27,51,.96);
       border:1px solid var(--border);
       border-radius: 18px;
@@ -285,7 +293,7 @@
     .searchCard .t2{color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
     .searchCard .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
 
-    /* Sidebar + modal + lightbox (same) */
+    /* Sidebar + modal + lightbox */
     .sidebar{
       position:fixed;
       top:76px;
@@ -422,6 +430,63 @@
       background: rgba(0,0,0,.2);
     }
 
+    /* Easter egg overlay (cleaner than lightbox for "IDEN") */
+    .egg{
+      position:fixed; inset:0;
+      z-index:40;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      background: rgba(0,0,0,.72);
+      backdrop-filter: blur(8px);
+    }
+    .egg.open{display:flex}
+    .egg-card{
+      width:min(920px, 96vw);
+      background: rgba(15,27,51,.92);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .egg-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px 12px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+    }
+    .egg-title{
+      font-weight:900;
+      letter-spacing:.2px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      white-space:nowrap;
+    }
+    .egg-title .dot{
+      width:10px;height:10px;border-radius:99px;
+      background: var(--accent);
+      box-shadow: 0 0 18px rgba(106,167,255,.55);
+    }
+    .egg-body{
+      padding:12px;
+      display:flex;
+      justify-content:center;
+      background: rgba(0,0,0,.18);
+    }
+    .egg-body img{
+      width:100%;
+      height:auto;
+      max-height: 78vh;
+      object-fit: contain;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+    }
+
     /* Custom marker */
     .cm{
       width: 34px;
@@ -461,7 +526,7 @@
       .searchCard .actions .btn{flex:1}
       .brand{min-width:auto}
       .topbar{border-radius: 18px}
-      .togglePill{top:124px;} /* extra space on small screens */
+      .togglePill{top:124px;}
     }
   </style>
 </head>
@@ -478,17 +543,22 @@
       </div>
 
       <div class="controls">
-        <!-- Added clearer options: Streets / Dark / Satellite -->
         <select id="styleSel" class="select" title="Map style">
           <option value="streets">Streets</option>
           <option value="dark">Dark</option>
           <option value="satellite">Satellite</option>
+          <option value="hybrid">Satellite + Labels</option>
         </select>
 
         <div class="searchWrap">
-          <span class="searchIcon">🔎</span>
-          <input id="search" class="search" type="text" placeholder="Search any address (home, business, city)…" autocomplete="off" />
-          <button id="clearSearch" class="clearBtn" title="Clear">✕</button>
+          <div class="searchGroup">
+            <span class="searchIcon">🔎</span>
+            <input id="search" class="search" type="text" placeholder="Search any full address (home, business, city)..." autocomplete="off" />
+            <button id="clearSearch" class="clearBtn" title="Clear">✕</button>
+          </div>
+
+          <button id="btnSearch" class="btn ghost" title="Search">Search</button>
+
           <div id="dropdown" class="dropdown"></div>
         </div>
 
@@ -616,20 +686,30 @@
     <img id="lightboxImg" alt="Photo preview" />
   </div>
 
+  <!-- Easter Egg Overlay -->
+  <div class="egg" id="egg">
+    <div class="egg-card">
+      <div class="egg-head">
+        <div class="egg-title"><span class="dot"></span> IDEN</div>
+        <button class="btn ghost" id="btnEggClose">✕</button>
+      </div>
+      <div class="egg-body">
+        <!-- IMPORTANT: upload your attached image to the repo as iden.png -->
+        <img id="eggImg" src="iden.png" alt="IDEN" />
+      </div>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
   <script>
     const MAPTILER_KEY = "rreP1kJx0CQWSnrve5pW";
 
-    // Styles (Streets + Dark + Satellite)
-    // Note: "satellite-v2" is satellite imagery; "hybrid" adds labels on top.
     const STYLES = {
       streets:   `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`,
       dark:      `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MAPTILER_KEY}`,
-      // pure satellite imagery (no labels)
-      satellite: `https://api.maptiler.com/maps/satellite/style.json?key=${MAPTILER_KEY}`
-      // If you prefer satellite WITH labels, swap the line above for:
-      // satellite: `https://api.maptiler.com/maps/hybrid/style.json?key=${MAPTILER_KEY}`
+      satellite: `https://api.maptiler.com/maps/satellite/style.json?key=${MAPTILER_KEY}`,
+      hybrid:    `https://api.maptiler.com/maps/hybrid/style.json?key=${MAPTILER_KEY}`
     };
 
     const CA_BOUNDS = [
@@ -795,7 +875,7 @@
       map.setMinZoom(5);
       map.setMaxZoom(20);
 
-      // ✅ no +/− zoom control
+      // no +/− zoom control
 
       map.on("click", (e) => {
         closeDropdown();
@@ -1027,7 +1107,15 @@
       $("lightboxImg").src = "";
     }
 
-    // Search
+    // Easter egg (IDEN)
+    function openEgg(){
+      $("egg").classList.add("open");
+    }
+    function closeEgg(){
+      $("egg").classList.remove("open");
+    }
+
+    // Dropdown helpers
     function closeDropdown(){
       $("dropdown").classList.remove("open");
       $("dropdown").innerHTML = "";
@@ -1045,63 +1133,94 @@
       if (searchMarker) { searchMarker.remove(); searchMarker = null; }
     }
 
-    // Apple-maps style geocoding:
-    // - allow addresses, homes, businesses
-    // - when clicked: zoom more for addresses
+    // ✅ Apple-maps-like search:
+    // - any full address works
+    // - partial shows suggestions
+    // - shows useful error if geocoding is blocked
     async function maptilerSearch(query){
       const q = (query || "").trim();
       if (q.length < 2) { closeDropdown(); return; }
 
-      // NOTE: MapTiler geocoding supports "types". This makes address + POI results better.
-      const url =
-        `https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json` +
-        `?key=${MAPTILER_KEY}&limit=10&country=us&types=address,poi,place,locality,neighborhood`;
-
-      let data;
-      try{
-        const res = await fetch(url);
-        data = await res.json();
-      } catch {
-        closeDropdown();
-        return;
-      }
-
-      const feats = (data && data.features) ? data.features : [];
-
-      const candidates = feats
-        .map(f => {
-          const [lng, lat] = f.center || f.geometry?.coordinates || [];
-          return { f, lng, lat };
-        })
-        .filter(x => typeof x.lng === "number" && typeof x.lat === "number");
-
-      // Keep California-only behavior (since your map is locked to CA)
-      const inCA = candidates.filter(x => isInCA(x.lng, x.lat));
-
       const dd = $("dropdown");
       dd.innerHTML = "";
+      dd.classList.add("open");
 
       const head = document.createElement("div");
       head.className = "dd-head";
-      head.innerHTML = `<div class="muted">Results in California</div><button class="btn ghost" id="ddCloseBtn" style="padding:7px 10px;">Close</button>`;
+      head.innerHTML = `
+        <div class="muted">Searching…</div>
+        <button class="btn ghost" id="ddCloseBtn" style="padding:7px 10px;">Close</button>
+      `;
       dd.appendChild(head);
-
       setTimeout(() => {
         const b = $("ddCloseBtn");
         if (b) b.onclick = () => closeDropdown();
       }, 0);
 
-      if (!inCA.length){
-        const none = document.createElement("div");
-        none.className = "dd-item";
-        none.innerHTML = `<div style="width:100%"><div class="dd-title">No results in California</div><div class="dd-sub">Try adding city (e.g., “123 Main St Fresno CA”).</div></div>`;
-        dd.appendChild(none);
-        dd.classList.add("open");
+      const CA_BBOX = "-124.482003,32.528832,-114.131211,42.009518";
+      const url =
+        `https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json` +
+        `?key=${MAPTILER_KEY}` +
+        `&limit=10` +
+        `&country=us` +
+        `&autocomplete=true` +
+        `&fuzzyMatch=true` +
+        `&language=en` +
+        `&bbox=${encodeURIComponent(CA_BBOX)}` +
+        `&types=address,poi,place,locality,neighborhood,street`;
+
+      let res, data;
+      try{
+        res = await fetch(url, { headers: { "Accept": "application/json" }});
+        if (!res.ok){
+          const msg = `Search failed (${res.status}). If you restricted your key, allow origin: https://oscarxvera.github.io`;
+          const row = document.createElement("div");
+          row.className = "dd-item";
+          row.innerHTML = `
+            <div style="width:100%">
+              <div class="dd-title">Geocoding blocked</div>
+              <div class="dd-sub">${escapeHtml(msg)}</div>
+            </div>
+          `;
+          dd.appendChild(row);
+          return;
+        }
+        data = await res.json();
+      } catch (e){
+        const row = document.createElement("div");
+        row.className = "dd-item";
+        row.innerHTML = `
+          <div style="width:100%">
+            <div class="dd-title">Network error</div>
+            <div class="dd-sub">Couldn’t reach MapTiler. Check your connection and key restrictions.</div>
+          </div>
+        `;
+        dd.appendChild(row);
         return;
       }
 
-      for (const item of inCA){
-        const f = item.f;
+      const feats = Array.isArray(data?.features) ? data.features : [];
+      head.querySelector(".muted").textContent = "Results";
+
+      if (!feats.length){
+        const none = document.createElement("div");
+        none.className = "dd-item";
+        none.innerHTML = `
+          <div style="width:100%">
+            <div class="dd-title">No matches</div>
+            <div class="dd-sub">Try adding city/ZIP (example: “123 Main St, Fresno CA”).</div>
+          </div>
+        `;
+        dd.appendChild(none);
+        return;
+      }
+
+      for (const f of feats){
+        const coords = f.center || f.geometry?.coordinates;
+        if (!coords || typeof coords[0] !== "number" || typeof coords[1] !== "number") continue;
+
+        const lng = coords[0];
+        const lat = coords[1];
 
         const placeName =
           f.place_name ||
@@ -1110,10 +1229,10 @@
           "Result";
 
         const nameTop = (f.text || placeName).split(",")[0] || placeName;
-        const full = placeName;
 
         const placeType = (f.place_type && f.place_type[0]) ? f.place_type[0] : "";
-        const isAddress = placeType === "address";
+        const isAddress = placeType === "address" || placeType === "street";
+        const inCA = isInCA(lng, lat);
 
         const icon = isAddress ? "🏠"
                    : (placeType === "poi") ? "📍"
@@ -1124,9 +1243,12 @@
         row.className = "dd-item";
         row.innerHTML = `
           <div class="dd-ico">${icon}</div>
-          <div style="min-width:0;">
-            <div class="dd-title">${escapeHtml(nameTop)}</div>
-            <div class="dd-sub">${escapeHtml(full)}</div>
+          <div style="min-width:0; width:100%;">
+            <div class="dd-title">
+              ${escapeHtml(nameTop)}
+              ${inCA ? "" : `<span style="color:var(--danger); font-weight:900; margin-left:8px; font-size:12px;">Outside CA</span>`}
+            </div>
+            <div class="dd-sub">${escapeHtml(placeName)}</div>
           </div>
         `;
 
@@ -1135,32 +1257,47 @@
 
           selectedSearch = {
             name: nameTop,
-            full,
-            lng: item.lng,
-            lat: item.lat,
+            full: placeName,
+            lng, lat,
             placeType
           };
 
-          $("search").value = full;
+          $("search").value = placeName;
           $("clearSearch").classList.add("show");
 
-          setSearchMarker(item.lng, item.lat);
+          if (!inCA){
+            alert("That result is outside California. This map is locked to CA.");
+            return;
+          }
 
-          // ✅ zoom closer for exact addresses
-          const zoom = isAddress ? 17.8 : 15.5;
+          setSearchMarker(lng, lat);
 
-          map.flyTo({ center:[item.lng, item.lat], zoom, speed: 1.2, curve: 1.42 });
+          const zoom = isAddress ? 18.2 : 15.6;
+          map.flyTo({ center:[lng, lat], zoom, speed: 1.2, curve: 1.42 });
 
           openSearchCard(selectedSearch);
         };
 
         dd.appendChild(row);
       }
-
-      dd.classList.add("open");
     }
 
-    // Export / Import
+    // Search trigger (button + Enter)
+    function performSearch(){
+      const q = ($("search").value || "").trim();
+
+      // Easter egg: IDEN
+      if (q === "IDEN"){
+        closeDropdown();
+        closeSearchCard();
+        openEgg();
+        return;
+      }
+
+      maptilerSearch(q);
+    }
+
+    // Export / Import (unchanged)
     function blobToDataURL(blob){
       return new Promise((resolve, reject) => {
         const r = new FileReader();
@@ -1264,11 +1401,7 @@
       $("toggleIcon").textContent = collapsed ? "⌄" : "⌃";
       $("toggleText").textContent = collapsed ? "Show" : "Hide";
 
-      // ✅ move the pill:
-      // - if toolbar is visible: keep it lower so it doesn't cover the search bar
-      // - if toolbar is hidden: move it near the top so it's easy to bring back
-      $("togglePill").style.top = collapsed ? "14px" : "76px";
-
+      $("togglePill").style.top = collapsed ? "14px" : "92px";
       if (collapsed) closeDropdown();
     }
 
@@ -1304,20 +1437,39 @@
       $("btnHelp").onclick = () => {
         alert(
           "How to use:\n\n" +
-          "• Search any address (home/business)\n" +
-          "• Click a result to zoom to the exact address\n" +
+          "• Type any full address → Search (or press Enter)\n" +
+          "• Click a suggestion to zoom exactly\n" +
           "• Click map anywhere to add a pin\n" +
-          "• Hide the toolbar with the button on the right\n"
+          "• Hide the toolbar with the button on the right\n\n" +
+          "(Secret: type IDEN then Search)"
         );
       };
 
+      // Search input: show suggestions as you type
       $("search").addEventListener("input", debounce((e) => {
         const v = e.target.value;
         $("clearSearch").classList.toggle("show", !!v);
+
+        // If they are typing IDEN, don't spam suggestions
+        if (v.trim() === "IDEN") { closeDropdown(); return; }
+
         maptilerSearch(v);
       }, 250));
 
-      $("search").addEventListener("focus", debounce((e) => maptilerSearch(e.target.value), 120));
+      $("search").addEventListener("focus", debounce((e) => {
+        const v = e.target.value;
+        if (v.trim() === "IDEN") { closeDropdown(); return; }
+        maptilerSearch(v);
+      }, 120));
+
+      $("search").addEventListener("keydown", (e) => {
+        if (e.key === "Enter"){
+          e.preventDefault();
+          performSearch();
+        }
+      });
+
+      $("btnSearch").onclick = () => performSearch();
 
       $("clearSearch").onclick = () => {
         $("search").value = "";
@@ -1329,7 +1481,8 @@
       document.addEventListener("click", (ev) => {
         const dd = $("dropdown");
         const s  = $("search");
-        if (!dd.contains(ev.target) && ev.target !== s) closeDropdown();
+        const grp = $(".searchWrap");
+        if (!dd.contains(ev.target) && ev.target !== s && ev.target !== $("btnSearch")) closeDropdown();
       });
 
       $("btnClearResult").onclick = () => closeSearchCard();
@@ -1339,13 +1492,18 @@
         $("pinTitle").value = selectedSearch.full;
       };
 
+      // Easter egg close
+      $("btnEggClose").onclick = () => closeEgg();
+      $("egg").addEventListener("click", (e) => {
+        if (e.target && e.target.id === "egg") closeEgg();
+      });
+
       let collapsed = false;
       $("togglePill").onclick = () => {
         collapsed = !collapsed;
         setToolbarCollapsed(collapsed);
       };
 
-      // Start with toolbar visible and pill positioned safely
       setToolbarCollapsed(false);
 
       document.addEventListener("keydown", (e) => {
@@ -1355,6 +1513,7 @@
           if ($("sidebar").classList.contains("open")) closeSidebar();
           if ($("lightbox").classList.contains("open")) closeLightbox();
           if ($("searchCard").classList.contains("open")) closeSearchCard();
+          if ($("egg").classList.contains("open")) closeEgg();
         }
       });
     }
