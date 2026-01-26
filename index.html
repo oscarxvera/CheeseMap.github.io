@@ -16,7 +16,6 @@
       --accent:#6aa7ff;
       --danger:#ff6a7a;
       --shadow: 0 14px 40px rgba(0,0,0,.38);
-      --r: 18px;
     }
     *{box-sizing:border-box}
     html, body {height:100%}
@@ -36,7 +35,6 @@
       backdrop-filter: blur(10px);
     }
 
-    /* Top bar */
     .topbarWrap{
       position:fixed;
       top:12px; left:12px; right:12px;
@@ -49,20 +47,17 @@
       gap:10px;
       align-items:center;
       justify-content:space-between;
-
       padding:10px 12px;
       background: rgba(11,18,32,.58);
       border:1px solid var(--border);
       border-radius: 22px;
       backdrop-filter: blur(14px);
       box-shadow: var(--shadow);
-
-      transform: translateY(0);
       transition: transform .22s ease, opacity .22s ease;
     }
     .topbar.collapsed{
       transform: translateY(-120%);
-      opacity: 0.0;
+      opacity: 0;
       pointer-events:none;
     }
 
@@ -97,7 +92,6 @@
       width: 100%;
     }
 
-    /* Search */
     .searchWrap{
       position:relative;
       display:flex;
@@ -107,7 +101,6 @@
       max-width: min(820px, 72vw);
       flex: 1 1 auto;
     }
-
     .searchGroup{
       position:relative;
       width:100%;
@@ -189,18 +182,15 @@
     }
     .btn:active{transform: translateY(1px)}
 
-    /* Hide/Show pill */
     .togglePill{
       pointer-events:auto;
       position:fixed;
       right:14px;
-      top:76px;
+      top:92px;
       z-index:11;
-
       display:flex;
       align-items:center;
       gap:8px;
-
       padding:8px 10px;
       border-radius: 999px;
       background: rgba(11,18,32,.62);
@@ -223,10 +213,9 @@
       color: var(--text);
     }
 
-    /* Dropdown */
     .dropdown{
       position:absolute;
-      top:56px; /* a touch lower so it doesn't feel cramped */
+      top:56px;
       right:0;
       width:min(620px, 92vw);
       background: rgba(15,27,51,.96);
@@ -269,7 +258,6 @@
     .dd-title{font-weight:900; font-size:13px; line-height:1.2}
     .dd-sub{color: var(--muted); font-size:12px; margin-top:2px}
 
-    /* Search result card */
     .searchCard{
       position:fixed;
       left:12px;
@@ -293,144 +281,6 @@
     .searchCard .t2{color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
     .searchCard .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
 
-    /* Sidebar + modal + lightbox */
-    .sidebar{
-      position:fixed;
-      top:76px;
-      right:12px;
-      width: 390px;
-      max-width: calc(100vw - 24px);
-      height: calc(100vh - 88px);
-      z-index:10;
-      background: rgba(15,27,51,.90);
-      border:1px solid var(--border);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(14px);
-      overflow:hidden;
-      display:none;
-    }
-    .sidebar.open{display:block}
-    .sidebar-inner{height:100%; display:flex; flex-direction:column;}
-    .sidebar-header{
-      padding:14px 14px 10px;
-      border-bottom:1px solid var(--border);
-      display:flex; gap:10px; align-items:flex-start; justify-content:space-between;
-    }
-    .titleblock h2{margin:0; font-size:18px; line-height:1.2;}
-    .muted{color:var(--muted)}
-    .small{font-size:12px}
-    .sidebar-actions{display:flex; gap:8px; align-items:center}
-    .sidebar-body{
-      padding:14px;
-      overflow:auto;
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-    }
-    .card{
-      background: rgba(255,255,255,.06);
-      border:1px solid var(--border);
-      border-radius: 16px;
-      padding:12px;
-    }
-    .kv{display:flex; flex-direction:column; gap:6px}
-    .pillrow{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      border-radius: 999px;
-      padding:6px 10px;
-      font-size: 12px;
-      color: var(--text);
-    }
-    .dotpill{
-      width:10px; height:10px; border-radius: 99px;
-      border:1px solid rgba(255,255,255,.18);
-      background: #6aa7ff;
-    }
-    .gallery{
-      display:grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap:10px;
-    }
-    .thumb{
-      width:100%;
-      height:140px;
-      object-fit:cover;
-      border-radius: 14px;
-      border:1px solid var(--border);
-      cursor:pointer;
-      background: rgba(0,0,0,.2);
-    }
-
-    .modal{
-      position:fixed; inset:0;
-      z-index:20;
-      display:none;
-      align-items:center; justify-content:center;
-      background: rgba(0,0,0,.55);
-      backdrop-filter: blur(6px);
-      padding:14px;
-    }
-    .modal.open{display:flex}
-    .modal-card{
-      width: 610px;
-      max-width: calc(100vw - 24px);
-      background: rgba(15,27,51,.96);
-      border:1px solid var(--border);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-    .modal-head{
-      padding:14px;
-      display:flex; align-items:center; justify-content:space-between;
-      border-bottom:1px solid var(--border);
-    }
-    .modal-head h3{margin:0; font-size:16px}
-    .modal-body{padding:14px; display:flex; flex-direction:column; gap:10px}
-    label{font-size:12px; color:var(--muted)}
-    input[type="text"], textarea{
-      width:100%;
-      background: rgba(255,255,255,.08);
-      border:1px solid rgba(255,255,255,.12);
-      border-radius: 14px;
-      padding:10px 12px;
-      color: var(--text);
-      outline:none;
-    }
-    textarea{min-height:90px; resize:vertical}
-    .row{display:flex; gap:10px}
-    .row > *{flex:1}
-    .modal-actions{
-      padding:14px;
-      border-top:1px solid var(--border);
-      display:flex; gap:10px; justify-content:flex-end;
-    }
-
-    .lightbox{
-      position:fixed; inset:0;
-      z-index:30;
-      display:none;
-      background: rgba(0,0,0,.78);
-      align-items:center; justify-content:center;
-      padding:16px;
-    }
-    .lightbox.open{display:flex}
-    .lightbox img{
-      max-width:min(980px, 100%);
-      max-height: 92vh;
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.14);
-      box-shadow: var(--shadow);
-      background: rgba(0,0,0,.2);
-    }
-
-    /* Easter egg overlay (cleaner than lightbox for "IDEN") */
     .egg{
       position:fixed; inset:0;
       z-index:40;
@@ -487,37 +337,6 @@
       background: rgba(0,0,0,.18);
     }
 
-    /* Custom marker */
-    .cm{
-      width: 34px;
-      height: 34px;
-      border-radius: 14px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size: 16px;
-      font-weight: 900;
-      color: #0b1220;
-      border: 1px solid rgba(255,255,255,.20);
-      box-shadow: 0 10px 22px rgba(0,0,0,.35);
-      transform: translateY(-2px);
-      position: relative;
-    }
-    .cm:after{
-      content:"";
-      position:absolute;
-      width: 10px;
-      height: 10px;
-      background: inherit;
-      border-left: 1px solid rgba(255,255,255,.20);
-      border-bottom: 1px solid rgba(255,255,255,.20);
-      transform: translateY(19px) rotate(45deg);
-      border-radius: 2px;
-      left: 50%;
-      margin-left: -5px;
-    }
-    .cm-wrap{ position: relative; }
-
     @media (max-width: 720px){
       .dropdown{right:auto; left:0; width: calc(100vw - 24px);}
       .searchWrap{min-width: 100%; max-width: 100%;}
@@ -563,8 +382,6 @@
         </div>
 
         <button id="btnLocate" class="btn ghost">Locate</button>
-        <button id="btnExport" class="btn ghost">Export</button>
-        <button id="btnImport" class="btn ghost">Import</button>
         <button id="btnHelp" class="btn ghost">Help</button>
       </div>
     </div>
@@ -582,108 +399,7 @@
     </div>
     <div class="actions">
       <button class="btn ghost" id="btnClearResult">Clear</button>
-      <button class="btn" id="btnAddPinHere">Add pin here</button>
     </div>
-  </div>
-
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-inner">
-      <div class="sidebar-header">
-        <div class="titleblock">
-          <h2 id="sbTitle">Pin</h2>
-          <div class="muted" id="sbNotes"></div>
-          <div class="muted small" id="sbMeta"></div>
-          <div class="pillrow" style="margin-top:8px;">
-            <span class="pill"><span class="dotpill" id="sbColorDot"></span> <span id="sbCat">Category</span></span>
-            <span class="pill">Icon: <span id="sbIcon">📍</span></span>
-          </div>
-        </div>
-        <div class="sidebar-actions">
-          <button class="btn ghost" id="btnEditPin">Edit</button>
-          <button class="btn danger" id="btnDeletePin">Delete</button>
-          <button class="btn ghost" id="btnCloseSidebar">✕</button>
-        </div>
-      </div>
-
-      <div class="sidebar-body">
-        <div class="card kv">
-          <div class="muted small">Photos</div>
-          <div id="sbPhotoCount" class="small muted"></div>
-          <div class="gallery" id="sbGallery"></div>
-        </div>
-
-        <div class="card kv">
-          <div class="muted small">Add more photos</div>
-          <input id="sbAddPhotos" type="file" accept="image/*" multiple />
-          <button class="btn" id="btnAddPhotos">Upload to this pin</button>
-          <div class="muted small">Saved locally in this browser.</div>
-        </div>
-      </div>
-    </div>
-  </aside>
-
-  <div class="modal" id="modal">
-    <div class="modal-card">
-      <div class="modal-head">
-        <h3 id="modalTitle">New Pin</h3>
-        <button class="btn ghost" id="btnModalClose">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="row">
-          <div>
-            <label>Title</label>
-            <input id="pinTitle" type="text" placeholder="e.g., Spot, note, etc…" />
-          </div>
-          <div>
-            <label>Tags (optional)</label>
-            <input id="pinTags" type="text" placeholder="comma,separated,tags" />
-          </div>
-        </div>
-
-        <div class="row">
-          <div>
-            <label>Category</label>
-            <select id="pinCategory" class="select" style="width:100%; border-radius:14px;">
-              <option value="cheese">Cheese</option>
-              <option value="note">Note</option>
-              <option value="warning">Warning</option>
-              <option value="funny">Funny</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label>Marker Color</label>
-            <input id="pinColor" type="color" value="#6aa7ff"
-              style="width:100%; height:40px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:transparent;" />
-          </div>
-          <div>
-            <label>Icon (emoji)</label>
-            <input id="pinIcon" type="text" maxlength="2" placeholder="🧀" />
-          </div>
-        </div>
-
-        <div>
-          <label>Notes</label>
-          <textarea id="pinNotes" placeholder="Notes…"></textarea>
-        </div>
-
-        <div>
-          <label>Photos (optional)</label>
-          <input id="pinPhotos" type="file" accept="image/*" multiple />
-          <div class="muted small">Stored locally (IndexedDB).</div>
-        </div>
-
-        <div class="muted small" id="pinCoords"></div>
-      </div>
-      <div class="modal-actions">
-        <button class="btn ghost" id="btnCancel">Cancel</button>
-        <button class="btn" id="btnSavePin">Save</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="lightbox" id="lightbox">
-    <img id="lightboxImg" alt="Photo preview" />
   </div>
 
   <!-- Easter Egg Overlay -->
@@ -694,8 +410,12 @@
         <button class="btn ghost" id="btnEggClose">✕</button>
       </div>
       <div class="egg-body">
-        <!-- IMPORTANT: upload your attached image to the repo as iden.png -->
-        <img id="eggImg" src="iden.png" alt="IDEN" />
+        <!-- HEIC is not supported in every browser.
+             Upload iden.jpg too for best compatibility; the <img> fallback will use it. -->
+        <picture>
+          <source srcset="iden.HEIC" type="image/heic">
+          <img id="eggImg" src="iden.jpg" alt="IDEN" />
+        </picture>
       </div>
     </div>
   </div>
@@ -717,17 +437,7 @@
       [-114.131211, 42.009518]
     ];
 
-    const CAT_DEFAULTS = {
-      cheese:  { color:"#ffd166", icon:"🧀", label:"Cheese" },
-      note:    { color:"#6aa7ff", icon:"📝", label:"Note" },
-      warning: { color:"#ff6a7a", icon:"⚠️", label:"Warning" },
-      funny:   { color:"#8bffb0", icon:"😂", label:"Funny" },
-      other:   { color:"#c3b5ff", icon:"📍", label:"Other" }
-    };
-
     const $ = (id) => document.getElementById(id);
-    const fmtDate = (ms) => { try { return new Date(ms).toLocaleString(); } catch { return ""; } };
-    const uid = () => (crypto?.randomUUID ? crypto.randomUUID() : ("id-" + Math.random().toString(16).slice(2) + Date.now()));
     const debounce = (fn, ms=250) => { let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; };
 
     function escapeHtml(s){
@@ -743,121 +453,16 @@
       );
     }
 
-    // IndexedDB
-    const DB_NAME = "cheesemap_db";
-    const DB_VER = 1;
-    let db;
-
-    function openDB(){
-      return new Promise((resolve, reject) => {
-        const req = indexedDB.open(DB_NAME, DB_VER);
-        req.onupgradeneeded = () => {
-          const d = req.result;
-          if (!d.objectStoreNames.contains("pins")) d.createObjectStore("pins", { keyPath: "id" });
-          if (!d.objectStoreNames.contains("photos")) d.createObjectStore("photos", { keyPath: "id" });
-        };
-        req.onsuccess = () => { db = req.result; resolve(db); };
-        req.onerror = () => reject(req.error);
-      });
-    }
-
-    function tx(store, mode="readonly"){ return db.transaction(store, mode).objectStore(store); }
-
-    async function dbPut(store, value){
-      return new Promise((resolve, reject) => {
-        const req = tx(store, "readwrite").put(value);
-        req.onsuccess = () => resolve(true);
-        req.onerror = () => reject(req.error);
-      });
-    }
-
-    async function dbGet(store, key){
-      return new Promise((resolve, reject) => {
-        const req = tx(store).get(key);
-        req.onsuccess = () => resolve(req.result || null);
-        req.onerror = () => reject(req.error);
-      });
-    }
-
-    async function dbDelete(store, key){
-      return new Promise((resolve, reject) => {
-        const req = tx(store, "readwrite").delete(key);
-        req.onsuccess = () => resolve(true);
-        req.onerror = () => reject(req.error);
-      });
-    }
-
-    async function dbGetAllPins(){
-      return new Promise((resolve, reject) => {
-        const req = tx("pins").getAll();
-        req.onsuccess = () => resolve(req.result || []);
-        req.onerror = () => reject(req.error);
-      });
-    }
-
     // Map + state
     let map;
-    let markers = new Map();
     let searchMarker = null;
-
-    let currentPin = null;
-    let pendingLatLng = null;
-    let isEditMode = false;
-
     let selectedSearch = null;
-
-    let activeObjectUrls = [];
-    function revokeObjectUrls(){
-      for (const u of activeObjectUrls) URL.revokeObjectURL(u);
-      activeObjectUrls = [];
-    }
-
-    function createMarkerEl(color, icon){
-      const wrap = document.createElement("div");
-      wrap.className = "cm-wrap";
-
-      const el = document.createElement("div");
-      el.className = "cm";
-      el.style.background = color || "#6aa7ff";
-      el.textContent = (icon && icon.trim()) ? icon.trim().slice(0,2) : "📍";
-
-      wrap.appendChild(el);
-      return wrap;
-    }
 
     function setSearchMarker(lng, lat){
       if (searchMarker) searchMarker.remove();
       searchMarker = new maplibregl.Marker({ color: "#ffffff" })
         .setLngLat([lng, lat])
         .addTo(map);
-    }
-
-    function clearMarkers(){
-      for (const m of markers.values()) m.remove();
-      markers.clear();
-    }
-
-    function addMarkerForPin(pin){
-      const el = createMarkerEl(pin.color, pin.icon);
-      el.style.cursor = "pointer";
-
-      const marker = new maplibregl.Marker({ element: el })
-        .setLngLat([pin.lng, pin.lat])
-        .addTo(map);
-
-      el.addEventListener("click", (ev) => {
-        ev.stopPropagation();
-        openSidebar(pin.id);
-      });
-
-      markers.set(pin.id, marker);
-    }
-
-    async function refreshPinsOnMap(){
-      const pins = await dbGetAllPins();
-      clearMarkers();
-      pins.sort((a,b)=> (b.createdAt||0)-(a.createdAt||0));
-      for (const pin of pins) addMarkerForPin(pin);
     }
 
     function initMap(){
@@ -876,246 +481,8 @@
       map.setMaxZoom(20);
 
       // no +/− zoom control
-
-      map.on("click", (e) => {
-        closeDropdown();
-        const { lng, lat } = e.lngLat;
-        openPinModal({ lng, lat }, null);
-      });
-
-      $("styleSel").addEventListener("change", () => {
-        const v = $("styleSel").value;
-        map.setStyle(STYLES[v] || STYLES.streets);
-
-        map.once("styledata", async () => {
-          await refreshPinsOnMap();
-          if (selectedSearch?.lng != null) setSearchMarker(selectedSearch.lng, selectedSearch.lat);
-        });
-      });
     }
 
-    // Modal
-    function openPinModal(latlng, pinToEdit){
-      pendingLatLng = latlng;
-      isEditMode = !!pinToEdit;
-
-      $("modalTitle").textContent = isEditMode ? "Edit Pin" : "New Pin";
-      $("pinCoords").textContent = `Coords: ${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
-
-      $("pinTitle").value = pinToEdit?.title || (selectedSearch?.name || "");
-      $("pinTags").value  = (pinToEdit?.tags || []).join(", ");
-      $("pinNotes").value = pinToEdit?.notes || "";
-
-      const cat = pinToEdit?.category || "cheese";
-      $("pinCategory").value = cat;
-
-      const def = CAT_DEFAULTS[cat] || CAT_DEFAULTS.other;
-      $("pinColor").value = pinToEdit?.color || def.color;
-      $("pinIcon").value  = pinToEdit?.icon  || def.icon;
-
-      $("pinPhotos").value = "";
-      $("modal").classList.add("open");
-    }
-
-    function closePinModal(){
-      $("modal").classList.remove("open");
-      pendingLatLng = null;
-      isEditMode = false;
-    }
-
-    $("pinCategory").addEventListener("change", () => {
-      const cat = $("pinCategory").value;
-      const def = CAT_DEFAULTS[cat] || CAT_DEFAULTS.other;
-      $("pinColor").value = def.color;
-      $("pinIcon").value  = def.icon;
-    });
-
-    async function storeFilesAsPhotos(files){
-      const ids = [];
-      for (const file of files){
-        if (file.size > 12 * 1024 * 1024){
-          alert(`Skipped ${file.name} (over 12MB).`);
-          continue;
-        }
-        const id = uid();
-        await dbPut("photos", { id, blob: file, name: file.name, type: file.type, createdAt: Date.now() });
-        ids.push(id);
-      }
-      return ids;
-    }
-
-    async function savePinFromModal(){
-      if (!pendingLatLng) return;
-
-      const title = $("pinTitle").value.trim();
-      const notes = $("pinNotes").value.trim();
-      const tags  = $("pinTags").value.split(",").map(s=>s.trim()).filter(Boolean);
-      const files = Array.from($("pinPhotos").files || []);
-
-      const category = $("pinCategory").value || "other";
-      const color = $("pinColor").value || (CAT_DEFAULTS[category]?.color || "#6aa7ff");
-      const icon = ($("pinIcon").value || CAT_DEFAULTS[category]?.icon || "📍").trim().slice(0,2);
-
-      if (!title && !notes && !files.length) {
-        alert("Add at least a title, notes, or a photo.");
-        return;
-      }
-
-      if (isEditMode && currentPin){
-        const updated = {
-          ...currentPin,
-          title, notes, tags,
-          category, color, icon,
-          lat: pendingLatLng.lat,
-          lng: pendingLatLng.lng,
-          updatedAt: Date.now()
-        };
-
-        if (files.length){
-          const newPhotoIds = await storeFilesAsPhotos(files);
-          updated.photoIds = [...(updated.photoIds||[]), ...newPhotoIds];
-        }
-
-        await dbPut("pins", updated);
-        closePinModal();
-        await refreshPinsOnMap();
-        await openSidebar(updated.id);
-        return;
-      }
-
-      const pinId = uid();
-      const createdAt = Date.now();
-      const photoIds = files.length ? await storeFilesAsPhotos(files) : [];
-
-      const pin = {
-        id: pinId,
-        lat: pendingLatLng.lat,
-        lng: pendingLatLng.lng,
-        title,
-        notes,
-        tags,
-        category,
-        color,
-        icon,
-        createdAt,
-        photoIds
-      };
-
-      await dbPut("pins", pin);
-      closePinModal();
-      await refreshPinsOnMap();
-      await openSidebar(pinId);
-    }
-
-    // Sidebar
-    async function openSidebar(pinId){
-      revokeObjectUrls();
-
-      const pin = await dbGet("pins", pinId);
-      if (!pin) return;
-
-      currentPin = pin;
-
-      $("sbTitle").textContent = pin.title || "Pin";
-      $("sbNotes").textContent = pin.notes || "";
-      const tagTxt = (pin.tags && pin.tags.length) ? ` • Tags: ${pin.tags.join(", ")}` : "";
-      $("sbMeta").textContent =
-        `${pin.lat.toFixed(6)}, ${pin.lng.toFixed(6)} • ${fmtDate(pin.createdAt)}${tagTxt}`;
-
-      const catKey = pin.category || "other";
-      const catLabel = (CAT_DEFAULTS[catKey]?.label) || "Other";
-      $("sbCat").textContent = catLabel;
-      $("sbIcon").textContent = pin.icon || "📍";
-      $("sbColorDot").style.background = pin.color || "#6aa7ff";
-
-      const photoIds = pin.photoIds || [];
-      $("sbPhotoCount").textContent = photoIds.length ? `${photoIds.length} photo(s)` : "No photos yet";
-
-      const gallery = $("sbGallery");
-      gallery.innerHTML = "";
-
-      if (!photoIds.length){
-        gallery.innerHTML = `<div class="muted small">Upload photos for this pin using the box below.</div>`;
-      } else {
-        for (const pid of photoIds){
-          const photo = await dbGet("photos", pid);
-          if (!photo?.blob) continue;
-
-          const url = URL.createObjectURL(photo.blob);
-          activeObjectUrls.push(url);
-
-          const img = document.createElement("img");
-          img.className = "thumb";
-          img.src = url;
-          img.alt = "Photo";
-          img.loading = "lazy";
-          img.addEventListener("click", () => openLightbox(url));
-          gallery.appendChild(img);
-        }
-      }
-
-      $("sidebar").classList.add("open");
-      map.flyTo({ center:[pin.lng, pin.lat], zoom: Math.max(map.getZoom(), 14), speed: 1.2, curve: 1.42 });
-    }
-
-    function closeSidebar(){
-      $("sidebar").classList.remove("open");
-      currentPin = null;
-      revokeObjectUrls();
-    }
-
-    async function addPhotosToCurrentPin(){
-      if (!currentPin) return;
-      const files = Array.from($("sbAddPhotos").files || []);
-      if (!files.length) return alert("Choose one or more photos first.");
-
-      const newPhotoIds = await storeFilesAsPhotos(files);
-      if (!newPhotoIds.length) return;
-
-      const updated = {
-        ...currentPin,
-        photoIds: [...(currentPin.photoIds||[]), ...newPhotoIds],
-        updatedAt: Date.now()
-      };
-
-      await dbPut("pins", updated);
-      $("sbAddPhotos").value = "";
-      await openSidebar(updated.id);
-      await refreshPinsOnMap();
-    }
-
-    async function deleteCurrentPin(){
-      if (!currentPin) return;
-      if (!confirm("Delete this pin? (Photos for this pin will also be removed)")) return;
-
-      for (const pid of (currentPin.photoIds || [])){
-        await dbDelete("photos", pid);
-      }
-      await dbDelete("pins", currentPin.id);
-
-      closeSidebar();
-      await refreshPinsOnMap();
-    }
-
-    // Lightbox
-    function openLightbox(url){
-      $("lightboxImg").src = url;
-      $("lightbox").classList.add("open");
-    }
-    function closeLightbox(){
-      $("lightbox").classList.remove("open");
-      $("lightboxImg").src = "";
-    }
-
-    // Easter egg (IDEN)
-    function openEgg(){
-      $("egg").classList.add("open");
-    }
-    function closeEgg(){
-      $("egg").classList.remove("open");
-    }
-
-    // Dropdown helpers
     function closeDropdown(){
       $("dropdown").classList.remove("open");
       $("dropdown").innerHTML = "";
@@ -1133,10 +500,13 @@
       if (searchMarker) { searchMarker.remove(); searchMarker = null; }
     }
 
-    // ✅ Apple-maps-like search:
-    // - any full address works
-    // - partial shows suggestions
-    // - shows useful error if geocoding is blocked
+    function openEgg(){ $("egg").classList.add("open"); }
+    function closeEgg(){ $("egg").classList.remove("open"); }
+
+    // ✅ Improved address search:
+    // - DOES NOT use CA bbox filter (so "any address" can be found)
+    // - uses proximity bias near CA
+    // - shows a clear message if your key is origin-blocked
     async function maptilerSearch(query){
       const q = (query || "").trim();
       if (q.length < 2) { closeDropdown(); return; }
@@ -1157,7 +527,10 @@
         if (b) b.onclick = () => closeDropdown();
       }, 0);
 
-      const CA_BBOX = "-124.482003,32.528832,-114.131211,42.009518";
+      // Bias results toward California (center-ish), but do NOT block non-CA results
+      const caCenterLng = -119.4179;
+      const caCenterLat = 36.7783;
+
       const url =
         `https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json` +
         `?key=${MAPTILER_KEY}` +
@@ -1166,14 +539,20 @@
         `&autocomplete=true` +
         `&fuzzyMatch=true` +
         `&language=en` +
-        `&bbox=${encodeURIComponent(CA_BBOX)}` +
+        `&proximity=${caCenterLng},${caCenterLat}` +
         `&types=address,poi,place,locality,neighborhood,street`;
 
       let res, data;
       try{
         res = await fetch(url, { headers: { "Accept": "application/json" }});
+
         if (!res.ok){
-          const msg = `Search failed (${res.status}). If you restricted your key, allow origin: https://oscarxvera.github.io`;
+          // Better guidance specifically for origin restriction
+          const likelyOriginBlock = (res.status === 401 || res.status === 403);
+          const msg = likelyOriginBlock
+            ? `Blocked (${res.status}). Fix: In MapTiler → Key → Allowed HTTP Origins, add: oscarxvera.github.io (NO https://, NO path).`
+            : `Search failed (${res.status}).`;
+
           const row = document.createElement("div");
           row.className = "dd-item";
           row.innerHTML = `
@@ -1185,6 +564,7 @@
           dd.appendChild(row);
           return;
         }
+
         data = await res.json();
       } catch (e){
         const row = document.createElement("div");
@@ -1192,7 +572,7 @@
         row.innerHTML = `
           <div style="width:100%">
             <div class="dd-title">Network error</div>
-            <div class="dd-sub">Couldn’t reach MapTiler. Check your connection and key restrictions.</div>
+            <div class="dd-sub">Couldn’t reach MapTiler. Check connection + key restrictions.</div>
           </div>
         `;
         dd.appendChild(row);
@@ -1265,8 +645,10 @@
           $("search").value = placeName;
           $("clearSearch").classList.add("show");
 
+          // Only zoom within CA because map is locked
           if (!inCA){
             alert("That result is outside California. This map is locked to CA.");
+            openSearchCard(selectedSearch);
             return;
           }
 
@@ -1282,7 +664,6 @@
       }
     }
 
-    // Search trigger (button + Enter)
     function performSearch(){
       const q = ($("search").value || "").trim();
 
@@ -1293,88 +674,9 @@
         openEgg();
         return;
       }
-
       maptilerSearch(q);
     }
 
-    // Export / Import (unchanged)
-    function blobToDataURL(blob){
-      return new Promise((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => resolve(r.result);
-        r.onerror = () => reject(r.error);
-        r.readAsDataURL(blob);
-      });
-    }
-    function dataURLToBlob(dataUrl){
-      const [meta, data] = dataUrl.split(",");
-      const mime = (meta.match(/data:(.*);base64/) || [])[1] || "application/octet-stream";
-      const bin = atob(data);
-      const arr = new Uint8Array(bin.length);
-      for (let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
-      return new Blob([arr], { type: mime });
-    }
-
-    async function exportAll(){
-      const pins = await dbGetAllPins();
-      const photos = {};
-
-      for (const p of pins){
-        for (const pid of (p.photoIds||[])){
-          if (photos[pid]) continue;
-          const rec = await dbGet("photos", pid);
-          if (!rec?.blob) continue;
-          photos[pid] = {
-            name: rec.name || "photo",
-            type: rec.type || "image/jpeg",
-            dataUrl: await blobToDataURL(rec.blob)
-          };
-        }
-      }
-
-      const payload = { exportedAt: new Date().toISOString(), pins, photos };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type:"application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `cheesemap-export-${Date.now()}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    async function importFromFile(file){
-      const text = await file.text();
-      const payload = JSON.parse(text);
-      if (!payload?.pins || !Array.isArray(payload.pins)){
-        alert("Invalid import file.");
-        return;
-      }
-
-      const photos = payload.photos || {};
-      for (const pid of Object.keys(photos)){
-        const rec = photos[pid];
-        if (!rec?.dataUrl) continue;
-        const blob = dataURLToBlob(rec.dataUrl);
-        await dbPut("photos", { id: pid, blob, name: rec.name, type: rec.type, createdAt: Date.now() });
-      }
-
-      for (const pin of payload.pins){
-        if (!pin.id) pin.id = uid();
-        if (typeof pin.lat !== "number" || typeof pin.lng !== "number") continue;
-        pin.createdAt = pin.createdAt || Date.now();
-        pin.photoIds = pin.photoIds || [];
-        pin.tags = pin.tags || [];
-        pin.category = pin.category || "other";
-        pin.color = pin.color || (CAT_DEFAULTS[pin.category]?.color || "#6aa7ff");
-        pin.icon = pin.icon || (CAT_DEFAULTS[pin.category]?.icon || "📍");
-        await dbPut("pins", pin);
-      }
-
-      await refreshPinsOnMap();
-      alert("Import complete.");
-    }
-
-    // Locate
     function locateMe(){
       if (!navigator.geolocation){
         alert("Geolocation not available in this browser.");
@@ -1394,73 +696,40 @@
       );
     }
 
-    // UI: retractable toolbar + pill positioning so it NEVER covers search
     function setToolbarCollapsed(collapsed){
       const topbar = $("topbar");
       topbar.classList.toggle("collapsed", collapsed);
       $("toggleIcon").textContent = collapsed ? "⌄" : "⌃";
       $("toggleText").textContent = collapsed ? "Show" : "Hide";
-
       $("togglePill").style.top = collapsed ? "14px" : "92px";
       if (collapsed) closeDropdown();
     }
 
-    // Wire UI
     function wireUI(){
-      $("btnCloseSidebar").onclick = () => closeSidebar();
-      $("btnModalClose").onclick = () => closePinModal();
-      $("btnCancel").onclick = () => closePinModal();
-      $("btnSavePin").onclick = () => savePinFromModal();
-
-      $("btnDeletePin").onclick = () => deleteCurrentPin();
-      $("btnEditPin").onclick = () => {
-        if (!currentPin) return;
-        openPinModal({ lat: currentPin.lat, lng: currentPin.lng }, currentPin);
-      };
-
-      $("btnAddPhotos").onclick = () => addPhotosToCurrentPin();
-      $("lightbox").addEventListener("click", () => closeLightbox());
+      $("styleSel").addEventListener("change", () => {
+        const v = $("styleSel").value;
+        map.setStyle(STYLES[v] || STYLES.streets);
+      });
 
       $("btnLocate").onclick = () => locateMe();
-      $("btnExport").onclick = () => exportAll();
-
-      $("btnImport").onclick = () => {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = "application/json";
-        input.onchange = async () => {
-          if (input.files?.[0]) await importFromFile(input.files[0]);
-        };
-        input.click();
-      };
 
       $("btnHelp").onclick = () => {
         alert(
           "How to use:\n\n" +
           "• Type any full address → Search (or press Enter)\n" +
-          "• Click a suggestion to zoom exactly\n" +
-          "• Click map anywhere to add a pin\n" +
-          "• Hide the toolbar with the button on the right\n\n" +
-          "(Secret: type IDEN then Search)"
+          "• Click a suggestion to zoom exactly (within CA)\n" +
+          "• Use style menu for Dark/Satellite/Hybrid\n\n" +
+          "Secret: type IDEN then Search"
         );
       };
 
-      // Search input: show suggestions as you type
       $("search").addEventListener("input", debounce((e) => {
         const v = e.target.value;
         $("clearSearch").classList.toggle("show", !!v);
 
-        // If they are typing IDEN, don't spam suggestions
         if (v.trim() === "IDEN") { closeDropdown(); return; }
-
         maptilerSearch(v);
       }, 250));
-
-      $("search").addEventListener("focus", debounce((e) => {
-        const v = e.target.value;
-        if (v.trim() === "IDEN") { closeDropdown(); return; }
-        maptilerSearch(v);
-      }, 120));
 
       $("search").addEventListener("keydown", (e) => {
         if (e.key === "Enter"){
@@ -1481,49 +750,33 @@
       document.addEventListener("click", (ev) => {
         const dd = $("dropdown");
         const s  = $("search");
-        const grp = $(".searchWrap");
-        if (!dd.contains(ev.target) && ev.target !== s && ev.target !== $("btnSearch")) closeDropdown();
+        const btn = $("btnSearch");
+        if (!dd.contains(ev.target) && ev.target !== s && ev.target !== btn) closeDropdown();
       });
 
       $("btnClearResult").onclick = () => closeSearchCard();
-      $("btnAddPinHere").onclick = () => {
-        if (!selectedSearch) return;
-        openPinModal({ lat: selectedSearch.lat, lng: selectedSearch.lng }, null);
-        $("pinTitle").value = selectedSearch.full;
-      };
 
-      // Easter egg close
       $("btnEggClose").onclick = () => closeEgg();
-      $("egg").addEventListener("click", (e) => {
-        if (e.target && e.target.id === "egg") closeEgg();
-      });
+      $("egg").addEventListener("click", (e) => { if (e.target && e.target.id === "egg") closeEgg(); });
 
       let collapsed = false;
       $("togglePill").onclick = () => {
         collapsed = !collapsed;
         setToolbarCollapsed(collapsed);
       };
-
       setToolbarCollapsed(false);
 
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
           closeDropdown();
-          if ($("modal").classList.contains("open")) closePinModal();
-          if ($("sidebar").classList.contains("open")) closeSidebar();
-          if ($("lightbox").classList.contains("open")) closeLightbox();
-          if ($("searchCard").classList.contains("open")) closeSearchCard();
+          closeSearchCard();
           if ($("egg").classList.contains("open")) closeEgg();
         }
       });
     }
 
-    (async function boot(){
-      await openDB();
-      initMap();
-      wireUI();
-      await refreshPinsOnMap();
-    })();
+    initMap();
+    wireUI();
   </script>
 </body>
 </html>
