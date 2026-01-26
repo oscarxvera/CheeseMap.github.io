@@ -10,8 +10,6 @@
   <style>
     :root{
       --bg:#0b1220;
-      --panel: rgba(15,27,51,.90);
-      --panel2: rgba(255,255,255,.08);
       --border: rgba(255,255,255,.10);
       --text:#eaf1ff;
       --muted:#9bb0d0;
@@ -31,7 +29,6 @@
     }
     #map{position:fixed; inset:0}
 
-    /* Hide MapLibre default attribution button a bit nicer (keep attribution legal) */
     .maplibregl-ctrl-attrib{
       background: rgba(15,27,51,.75) !important;
       border: 1px solid rgba(255,255,255,.10) !important;
@@ -39,14 +36,13 @@
       backdrop-filter: blur(10px);
     }
 
-    /* Top bar (cleaner + retractable) */
+    /* Top bar */
     .topbarWrap{
       position:fixed;
       top:12px; left:12px; right:12px;
       z-index:10;
-      pointer-events:none; /* allow map drag through empty areas */
+      pointer-events:none;
     }
-
     .topbar{
       pointer-events:auto;
       display:flex;
@@ -64,7 +60,6 @@
       transform: translateY(0);
       transition: transform .22s ease, opacity .22s ease;
     }
-
     .topbar.collapsed{
       transform: translateY(-120%);
       opacity: 0.0;
@@ -102,7 +97,7 @@
       width: 100%;
     }
 
-    /* Search bar – nicer */
+    /* Search */
     .searchWrap{
       position:relative;
       display:flex;
@@ -121,7 +116,6 @@
       padding:11px 42px 11px 40px;
       color: var(--text);
       outline:none;
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,.0);
       transition: background .15s ease, border-color .15s ease;
     }
     .search:focus{
@@ -161,6 +155,7 @@
       color: var(--text);
       outline:none;
       cursor:pointer;
+      white-space:nowrap;
     }
 
     .btn{
@@ -186,12 +181,12 @@
     }
     .btn:active{transform: translateY(1px)}
 
-    /* Small “show/hide” floating pill */
+    /* Hide/Show pill (we will move it via JS so it never covers search) */
     .togglePill{
       pointer-events:auto;
       position:fixed;
-      top:14px;
       right:14px;
+      top:76px; /* default: below search bar */
       z-index:11;
 
       display:flex;
@@ -266,7 +261,7 @@
     .dd-title{font-weight:900; font-size:13px; line-height:1.2}
     .dd-sub{color: var(--muted); font-size:12px; margin-top:2px}
 
-    /* Search bottom card */
+    /* Search result card */
     .searchCard{
       position:fixed;
       left:12px;
@@ -290,7 +285,7 @@
     .searchCard .t2{color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
     .searchCard .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
 
-    /* Sidebar + modal + lightbox (unchanged look from prior) */
+    /* Sidebar + modal + lightbox (same) */
     .sidebar{
       position:fixed;
       top:76px;
@@ -299,7 +294,7 @@
       max-width: calc(100vw - 24px);
       height: calc(100vh - 88px);
       z-index:10;
-      background: var(--panel);
+      background: rgba(15,27,51,.90);
       border:1px solid var(--border);
       border-radius: 18px;
       box-shadow: var(--shadow);
@@ -466,6 +461,7 @@
       .searchCard .actions .btn{flex:1}
       .brand{min-width:auto}
       .topbar{border-radius: 18px}
+      .togglePill{top:124px;} /* extra space on small screens */
     }
   </style>
 </head>
@@ -473,7 +469,6 @@
 <body>
   <div id="map"></div>
 
-  <!-- retractable UI -->
   <div class="topbarWrap">
     <div class="topbar" id="topbar">
       <div class="brand">
@@ -483,6 +478,7 @@
       </div>
 
       <div class="controls">
+        <!-- Added clearer options: Streets / Dark / Satellite -->
         <select id="styleSel" class="select" title="Map style">
           <option value="streets">Streets</option>
           <option value="dark">Dark</option>
@@ -491,7 +487,7 @@
 
         <div class="searchWrap">
           <span class="searchIcon">🔎</span>
-          <input id="search" class="search" type="text" placeholder="Search (address, city, business)…" autocomplete="off" />
+          <input id="search" class="search" type="text" placeholder="Search any address (home, business, city)…" autocomplete="off" />
           <button id="clearSearch" class="clearBtn" title="Clear">✕</button>
           <div id="dropdown" class="dropdown"></div>
         </div>
@@ -504,7 +500,6 @@
     </div>
   </div>
 
-  <!-- always visible toggle pill -->
   <div class="togglePill" id="togglePill" title="Show/Hide toolbar">
     <div class="k" id="toggleIcon">⌃</div>
     <span id="toggleText">Hide</span>
@@ -626,10 +621,15 @@
   <script>
     const MAPTILER_KEY = "rreP1kJx0CQWSnrve5pW";
 
+    // Styles (Streets + Dark + Satellite)
+    // Note: "satellite-v2" is satellite imagery; "hybrid" adds labels on top.
     const STYLES = {
       streets:   `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`,
       dark:      `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MAPTILER_KEY}`,
-      satellite: `https://api.maptiler.com/maps/hybrid/style.json?key=${MAPTILER_KEY}`
+      // pure satellite imagery (no labels)
+      satellite: `https://api.maptiler.com/maps/satellite/style.json?key=${MAPTILER_KEY}`
+      // If you prefer satellite WITH labels, swap the line above for:
+      // satellite: `https://api.maptiler.com/maps/hybrid/style.json?key=${MAPTILER_KEY}`
     };
 
     const CA_BOUNDS = [
@@ -795,8 +795,7 @@
       map.setMinZoom(5);
       map.setMaxZoom(20);
 
-      // ✅ removed NavigationControl to get rid of + / -
-      // map.addControl(new maplibregl.NavigationControl({ visualizePitch:true }), "top-left");
+      // ✅ no +/− zoom control
 
       map.on("click", (e) => {
         closeDropdown();
@@ -1046,11 +1045,17 @@
       if (searchMarker) { searchMarker.remove(); searchMarker = null; }
     }
 
+    // Apple-maps style geocoding:
+    // - allow addresses, homes, businesses
+    // - when clicked: zoom more for addresses
     async function maptilerSearch(query){
       const q = (query || "").trim();
       if (q.length < 2) { closeDropdown(); return; }
 
-      const url = `https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${MAPTILER_KEY}&limit=8&country=us`;
+      // NOTE: MapTiler geocoding supports "types". This makes address + POI results better.
+      const url =
+        `https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json` +
+        `?key=${MAPTILER_KEY}&limit=10&country=us&types=address,poi,place,locality,neighborhood`;
 
       let data;
       try{
@@ -1063,12 +1068,15 @@
 
       const feats = (data && data.features) ? data.features : [];
 
-      const inCA = feats
+      const candidates = feats
         .map(f => {
           const [lng, lat] = f.center || f.geometry?.coordinates || [];
           return { f, lng, lat };
         })
-        .filter(x => typeof x.lng === "number" && typeof x.lat === "number" && isInCA(x.lng, x.lat));
+        .filter(x => typeof x.lng === "number" && typeof x.lat === "number");
+
+      // Keep California-only behavior (since your map is locked to CA)
+      const inCA = candidates.filter(x => isInCA(x.lng, x.lat));
 
       const dd = $("dropdown");
       dd.innerHTML = "";
@@ -1086,7 +1094,7 @@
       if (!inCA.length){
         const none = document.createElement("div");
         none.className = "dd-item";
-        none.innerHTML = `<div style="width:100%"><div class="dd-title">No results in California</div><div class="dd-sub">Try adding city name (e.g., “Target Fresno”).</div></div>`;
+        none.innerHTML = `<div style="width:100%"><div class="dd-title">No results in California</div><div class="dd-sub">Try adding city (e.g., “123 Main St Fresno CA”).</div></div>`;
         dd.appendChild(none);
         dd.classList.add("open");
         return;
@@ -1104,9 +1112,12 @@
         const nameTop = (f.text || placeName).split(",")[0] || placeName;
         const full = placeName;
 
-        const icon = (f.place_type && f.place_type.includes("address")) ? "🏠"
-                   : (f.place_type && f.place_type.includes("poi")) ? "📍"
-                   : (f.place_type && f.place_type.includes("place")) ? "🏙️"
+        const placeType = (f.place_type && f.place_type[0]) ? f.place_type[0] : "";
+        const isAddress = placeType === "address";
+
+        const icon = isAddress ? "🏠"
+                   : (placeType === "poi") ? "📍"
+                   : (placeType === "place" || placeType === "locality") ? "🏙️"
                    : "📍";
 
         const row = document.createElement("div");
@@ -1126,14 +1137,19 @@
             name: nameTop,
             full,
             lng: item.lng,
-            lat: item.lat
+            lat: item.lat,
+            placeType
           };
 
           $("search").value = full;
           $("clearSearch").classList.add("show");
 
           setSearchMarker(item.lng, item.lat);
-          map.flyTo({ center:[item.lng, item.lat], zoom: 15.5, speed: 1.2, curve: 1.42 });
+
+          // ✅ zoom closer for exact addresses
+          const zoom = isAddress ? 17.8 : 15.5;
+
+          map.flyTo({ center:[item.lng, item.lat], zoom, speed: 1.2, curve: 1.42 });
 
           openSearchCard(selectedSearch);
         };
@@ -1241,13 +1257,18 @@
       );
     }
 
-    // UI: retractable toolbar
+    // UI: retractable toolbar + pill positioning so it NEVER covers search
     function setToolbarCollapsed(collapsed){
       const topbar = $("topbar");
       topbar.classList.toggle("collapsed", collapsed);
       $("toggleIcon").textContent = collapsed ? "⌄" : "⌃";
       $("toggleText").textContent = collapsed ? "Show" : "Hide";
-      // also close dropdown when hiding
+
+      // ✅ move the pill:
+      // - if toolbar is visible: keep it lower so it doesn't cover the search bar
+      // - if toolbar is hidden: move it near the top so it's easy to bring back
+      $("togglePill").style.top = collapsed ? "14px" : "76px";
+
       if (collapsed) closeDropdown();
     }
 
@@ -1283,14 +1304,13 @@
       $("btnHelp").onclick = () => {
         alert(
           "How to use:\n\n" +
-          "• Use the search bar for addresses/businesses\n" +
-          "• Tap a result → Add pin here\n" +
+          "• Search any address (home/business)\n" +
+          "• Click a result to zoom to the exact address\n" +
           "• Click map anywhere to add a pin\n" +
-          "• Hide the toolbar with the top-right button\n"
+          "• Hide the toolbar with the button on the right\n"
         );
       };
 
-      // Search input
       $("search").addEventListener("input", debounce((e) => {
         const v = e.target.value;
         $("clearSearch").classList.toggle("show", !!v);
@@ -1299,7 +1319,6 @@
 
       $("search").addEventListener("focus", debounce((e) => maptilerSearch(e.target.value), 120));
 
-      // Clear search
       $("clearSearch").onclick = () => {
         $("search").value = "";
         $("clearSearch").classList.remove("show");
@@ -1307,7 +1326,6 @@
         closeSearchCard();
       };
 
-      // Close dropdown if click outside
       document.addEventListener("click", (ev) => {
         const dd = $("dropdown");
         const s  = $("search");
@@ -1321,14 +1339,15 @@
         $("pinTitle").value = selectedSearch.full;
       };
 
-      // Toggle pill
       let collapsed = false;
       $("togglePill").onclick = () => {
         collapsed = !collapsed;
         setToolbarCollapsed(collapsed);
       };
 
-      // ESC closes stuff
+      // Start with toolbar visible and pill positioned safely
+      setToolbarCollapsed(false);
+
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
           closeDropdown();
