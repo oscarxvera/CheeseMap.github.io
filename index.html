@@ -281,7 +281,7 @@
     /* Easter egg overlay */
     .egg{
       position:fixed; inset:0;
-      z-index:40;
+      z-index:60;
       display:none;
       align-items:center;
       justify-content:center;
@@ -326,13 +326,13 @@
       background: rgba(0,0,0,.18);
     }
 
-    /* ===== Gallery popup UI (for uploaded photos) ===== */
-    .gPop{min-width:280px; max-width:320px; color:#0b1220; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;}
+    /* ===== Gallery popup UI ===== */
+    .gPop{min-width:280px; max-width:340px; color:#0b1220; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;}
     .gTop{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
     .gTitle{font-weight:900;font-size:13px;line-height:1.2;color:#071126}
     .gMeta{font-size:12px;color:rgba(7,17,38,.65);margin-top:4px}
     .gAuthRow{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
-    .gBtn{border:0;border-radius:999px;padding:7px 10px;font-weight:800;cursor:pointer}
+    .gBtn{border:0;border-radius:999px;padding:7px 10px;font-weight:900;cursor:pointer}
     .gBtn.primary{background:#6aa7ff;color:#071126}
     .gBtn.ghost{background:rgba(7,17,38,.08);color:#071126}
     .gCard{margin-top:10px;border-radius:14px;overflow:hidden;border:1px solid rgba(7,17,38,.10);background:#fff}
@@ -343,15 +343,106 @@
     .gThumbs{display:flex;gap:6px;overflow:auto;padding:8px;background:#fff}
     .gThumbs img{width:44px;height:44px;border-radius:10px;object-fit:cover;cursor:pointer;border:2px solid transparent}
     .gThumbs img.active{border-color:#6aa7ff}
-    .gFooter{padding:8px;background:#fff;border-top:1px solid rgba(7,17,38,.08);display:flex;justify-content:space-between;gap:8px;align-items:center}
-    .gSmall{font-size:12px;color:rgba(7,17,38,.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+    .gFooter{padding:8px;background:#fff;border-top:1px solid rgba(7,17,38,.08);display:flex;flex-direction:column;gap:8px}
+    .gRow{display:flex;justify-content:space-between;gap:8px;align-items:center}
+    .gSmall{font-size:12px;color:rgba(7,17,38,.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
     .gFile{display:none}
     .gUploadLabel{display:inline-flex;align-items:center;gap:8px}
     .gX{font-size:12px; padding:6px 9px}
     .gHint{font-size:12px;color:rgba(7,17,38,.6);margin-top:8px}
+    .gText{
+      width:100%;
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid rgba(7,17,38,.12);
+      outline:none;
+      font-size:12px;
+      resize:vertical;
+      min-height:40px;
+      max-height:120px;
+    }
+    .gText:focus{border-color: rgba(106,167,255,.55)}
     /* Make MapLibre popup background nice */
     .maplibregl-popup-content{border-radius:14px; padding:12px}
     .maplibregl-popup-close-button{font-size:16px}
+
+    /* ===== Auth modal ===== */
+    .auth{
+      position:fixed; inset:0;
+      z-index:70;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      background: rgba(0,0,0,.72);
+      backdrop-filter: blur(10px);
+    }
+    .auth.open{display:flex}
+    .auth-card{
+      width:min(520px, 96vw);
+      background: rgba(15,27,51,.96);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .auth-head{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:12px 12px;border-bottom:1px solid rgba(255,255,255,.10)
+    }
+    .auth-title{font-weight:900}
+    .auth-body{padding:12px;display:flex;flex-direction:column;gap:10px}
+    .auth-tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .auth-tab{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      padding:8px 10px;border-radius:999px;cursor:pointer;font-weight:900;font-size:12px;
+    }
+    .auth-tab.active{
+      background: var(--accent);
+      color:#071126;
+      border-color: rgba(255,255,255,.16);
+    }
+    .auth-field{
+      width:100%;
+      background: rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius: 12px;
+      padding:11px 12px;
+      color: var(--text);
+      outline:none;
+    }
+    .auth-field:focus{border-color: rgba(106,167,255,.55)}
+    .auth-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .auth-note{color:var(--muted);font-size:12px;line-height:1.35}
+    .auth-error{color:#ffb3bb;font-size:12px;display:none}
+    .auth-error.show{display:block}
+
+    /* ===== Right-click context menu ===== */
+    .ctx{
+      position:fixed;
+      z-index:65;
+      display:none;
+      min-width: 190px;
+      background: rgba(15,27,51,.96);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      backdrop-filter: blur(10px);
+    }
+    .ctx.open{display:block}
+    .ctx .item{
+      padding:10px 12px;
+      cursor:pointer;
+      display:flex;align-items:center;gap:10px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      font-weight:900;
+    }
+    .ctx .item:last-child{border-bottom:0}
+    .ctx .item:hover{background: rgba(255,255,255,.06)}
+    .ctx .sub{font-weight:800;color:var(--muted);font-size:12px;margin-left:auto}
 
     @media (max-width: 720px){
       .dropdown{right:auto; left:0; width: calc(100vw - 24px);}
@@ -439,14 +530,80 @@
     </div>
   </div>
 
+  <!-- Auth Modal -->
+  <div class="auth" id="authModal" aria-hidden="true">
+    <div class="auth-card">
+      <div class="auth-head">
+        <div class="auth-title">Sign in to add pins</div>
+        <button class="btn ghost" id="authClose">✕</button>
+      </div>
+      <div class="auth-body">
+        <div class="auth-note">
+          You need an account to add pins. You can still view the map and photos without signing in.
+        </div>
+
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="tabSignIn">Sign in</button>
+          <button class="auth-tab" id="tabCreate">Create account</button>
+        </div>
+
+        <div class="auth-error" id="authErr"></div>
+
+        <input class="auth-field" id="authEmail" type="email" placeholder="Email" autocomplete="email" />
+        <input class="auth-field" id="authPass" type="password" placeholder="Password" autocomplete="current-password" />
+
+        <div class="auth-actions">
+          <button class="btn ghost" id="btnGoogle">Continue with Google</button>
+          <button class="btn" id="btnEmailAction">Sign in</button>
+        </div>
+
+        <div class="auth-note">
+          If you use email/password, make sure you enabled <b>Email/Password</b> in Firebase Authentication → Sign-in method.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right-click context menu -->
+  <div class="ctx" id="ctxMenu">
+    <div class="item" id="ctxAddPin">📌 Add a pin here <span class="sub">Right-click</span></div>
+    <div class="item" id="ctxClose">✕ Close</div>
+  </div>
+
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
   <!-- ================= Firebase (required for accounts + photo storage) ================= -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      signOut,
+      onAuthStateChanged,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      getDoc,
+      collection,
+      addDoc,
+      getDocs,
+      query,
+      orderBy,
+      serverTimestamp,
+      deleteDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import {
+      getStorage,
+      ref,
+      uploadBytes,
+      getDownloadURL,
+      deleteObject
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
 
     // ✅ Your Firebase config (pasted)
     const firebaseConfig = {
@@ -465,12 +622,12 @@
     const storage = getStorage(app);
     const provider = new GoogleAuthProvider();
 
-    // Expose to non-module script below
     window.__fb = {
       auth, db, storage, provider,
       signInWithPopup, signOut, onAuthStateChanged,
-      doc, setDoc, getDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp,
-      ref, uploadBytes, getDownloadURL
+      createUserWithEmailAndPassword, signInWithEmailAndPassword,
+      doc, setDoc, getDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp, deleteDoc,
+      ref, uploadBytes, getDownloadURL, deleteObject
     };
   </script>
 
@@ -480,10 +637,10 @@
     const MAPTILER_KEY = "GFG1w5G5FvDB4k9dRW1U";
 
     const STYLES = {
-      streets:   `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`,
-      dark:      `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MAPTILER_KEY}`,
-      satellite: `https://api.maptiler.com/maps/satellite/style.json?key=${MAPTILER_KEY}`,
-      hybrid:    `https://api.maptiler.com/maps/hybrid/style.json?key=${MAPTILER_KEY}`
+      streets:   https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY},
+      dark:      https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MAPTILER_KEY},
+      satellite: https://api.maptiler.com/maps/satellite/style.json?key=${MAPTILER_KEY},
+      hybrid:    https://api.maptiler.com/maps/hybrid/style.json?key=${MAPTILER_KEY}
     };
 
     const CA_BOUNDS = [
@@ -495,7 +652,7 @@
     const debounce = (fn, ms=250) => { let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; };
 
     function escapeHtml(s){
-      return String(s).replace(/[&<>"']/g, (c) => ({
+      return String(s ?? "").replace(/[&<>"']/g, (c) => ({
         "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
       }[c]));
     }
@@ -509,17 +666,100 @@
 
     function showGeocodeBlocked(status){
       alert(
-        `Geocoding blocked (${status}). Fix in MapTiler:\n\n` +
-        `Key → Allowed HTTP Origins must be EXACTLY one of:\n` +
-        `• oscarxvera.github.io\n` +
-        `OR\n` +
-        `• https://oscarxvera.github.io\n\n` +
-        `No paths, no duplicates.`
+        Geocoding blocked (${status}). Fix in MapTiler:\n\n +
+        Key → Allowed HTTP Origins must be EXACTLY one of:\n +
+        • oscarxvera.github.io\n +
+        OR\n +
+        • https://oscarxvera.github.io\n\n +
+        No paths, no duplicates.
       );
     }
 
+    // ===== Firebase helpers =====
+    async function ensureFirebaseReady(){
+      const maxMs = 5000;
+      const start = Date.now();
+      while(!window.__fb){
+        if(Date.now() - start > maxMs) break;
+        await new Promise(r => setTimeout(r, 20));
+      }
+      return !!window.__fb;
+    }
+    function currentUser(){
+      return window.__fb?.auth?.currentUser || null;
+    }
+
+    // Deterministic user color from uid (same person always same color)
+    function colorFromUid(uid){
+      if(!uid) return "#ffffff";
+      let hash = 0;
+      for (let i=0;i<uid.length;i++) hash = ((hash<<5)-hash) + uid.charCodeAt(i), hash |= 0;
+      const hue = Math.abs(hash) % 360;
+      return hsl(${hue} 85% 62%);
+    }
+
+    // ===== Auth modal =====
+    let authMode = "signin"; // "signin" | "create"
+    let authResolve = null;
+
+    function setAuthMode(mode){
+      authMode = mode;
+      $("tabSignIn").classList.toggle("active", mode === "signin");
+      $("tabCreate").classList.toggle("active", mode === "create");
+      $("btnEmailAction").textContent = mode === "signin" ? "Sign in" : "Create account";
+      $("authPass").setAttribute("autocomplete", mode === "signin" ? "current-password" : "new-password");
+      hideAuthError();
+    }
+    function showAuthError(msg){
+      const el = $("authErr");
+      el.textContent = msg || "Something went wrong.";
+      el.classList.add("show");
+    }
+    function hideAuthError(){
+      const el = $("authErr");
+      el.textContent = "";
+      el.classList.remove("show");
+    }
+    function openAuthModal(){
+      $("authModal").classList.add("open");
+      $("authModal").setAttribute("aria-hidden","false");
+      setAuthMode("signin");
+      $("authEmail").focus();
+      return new Promise((resolve)=>{ authResolve = resolve; });
+    }
+    function closeAuthModal(ok=false){
+      $("authModal").classList.remove("open");
+      $("authModal").setAttribute("aria-hidden","true");
+      hideAuthError();
+      if(authResolve){ authResolve(ok); authResolve = null; }
+    }
+    async function requireAuthOrPrompt(){
+      if(!await ensureFirebaseReady()){
+        alert("Firebase not configured. Paste your Firebase config in the module script block.");
+        return false;
+      }
+      if(currentUser()) return true;
+      const ok = await openAuthModal();
+      return !!ok && !!currentUser();
+    }
+
+    // ===== Context menu (right click) =====
+    let ctxLngLat = null;
+    function openCtxMenu(x, y, lngLat){
+      ctxLngLat = lngLat;
+      const menu = $("ctxMenu");
+      menu.style.left = ${Math.min(x, window.innerWidth - 220)}px;
+      menu.style.top  = ${Math.min(y, window.innerHeight - 120)}px;
+      menu.classList.add("open");
+    }
+    function closeCtxMenu(){
+      $("ctxMenu").classList.remove("open");
+      ctxLngLat = null;
+    }
+
+    // ===== Map + pins =====
     let map;
-    const pins = []; // { id, lng, lat, title, address, marker }
+    const pins = new Map(); // pinId -> pin object
 
     function applyCALock(){
       map.setMaxBounds(CA_BOUNDS);
@@ -545,45 +785,71 @@
     function openEgg(){ $("egg").classList.add("open"); }
     function closeEgg(){ $("egg").classList.remove("open"); }
 
-    // ========= Firebase-backed photo gallery =========
     function pinIdFromLngLat(lng, lat){
-      // Stable enough; avoids dots/hyphens for Firestore doc id
-      return `pin_${lng.toFixed(5)}_${lat.toFixed(5)}`.replaceAll(".", "_").replaceAll("-", "m");
+      return pin_${lng.toFixed(5)}_${lat.toFixed(5)}.replaceAll(".", "_").replaceAll("-", "m");
     }
 
-    async function ensureFirebaseReady(){
-      // Wait for module script to set window.__fb
-      const maxMs = 4000;
-      const start = Date.now();
-      while(!window.__fb){
-        if(Date.now() - start > maxMs) break;
-        await new Promise(r => setTimeout(r, 20));
-      }
-      return !!window.__fb;
+    function makeMarkerEl(color){
+      const el = document.createElement("div");
+      el.style.width = "18px";
+      el.style.height = "18px";
+      el.style.borderRadius = "999px";
+      el.style.background = color || "#ffffff";
+      el.style.border = "2px solid rgba(255,255,255,.95)";
+      el.style.boxShadow = "0 10px 22px rgba(0,0,0,.35)";
+      el.style.cursor = "pointer";
+      return el;
     }
 
-    async function ensurePinDoc(pin){
+    // ========= Firestore pin + photos =========
+    async function ensurePinDoc(pin, isNew=false){
       if(!await ensureFirebaseReady()) return;
+
       const { db, doc, setDoc, getDoc, serverTimestamp } = window.__fb;
       const ref = doc(db, "pins", pin.id);
       const snap = await getDoc(ref);
+
+      const payload = {
+        id: pin.id,
+        title: pin.title || "Pin",
+        address: pin.address || "",
+        lng: pin.lng,
+        lat: pin.lat,
+        ownerUid: pin.ownerUid || null,
+        ownerName: pin.ownerName || "",
+        ownerColor: pin.ownerColor || "#ffffff",
+        updatedAt: serverTimestamp()
+      };
+      if(isNew) payload.createdAt = serverTimestamp();
+
       if(!snap.exists()){
-        await setDoc(ref, {
-          id: pin.id,
-          title: pin.title || "Pin",
-          address: pin.address || "",
-          lng: pin.lng,
-          lat: pin.lat,
-          createdAt: serverTimestamp()
-        }, { merge:true });
+        await setDoc(ref, payload, { merge:true });
       } else {
-        // keep title/address up to date
-        await setDoc(ref, {
-          title: pin.title || "Pin",
-          address: pin.address || "",
-          lng: pin.lng,
-          lat: pin.lat
-        }, { merge:true });
+        await setDoc(ref, payload, { merge:true });
+      }
+    }
+
+    async function loadAllPins(){
+      if(!await ensureFirebaseReady()) return;
+      const { db, collection, getDocs } = window.__fb;
+      const col = collection(db, "pins");
+      const snap = await getDocs(col);
+
+      for (const d of snap.docs){
+        const p = d.data();
+        if(!p || typeof p.lng !== "number" || typeof p.lat !== "number") continue;
+        if(!isInCA(p.lng, p.lat)) continue;
+
+        const id = p.id || d.id;
+        if(pins.has(id)) continue;
+
+        addPin(p.lng, p.lat, p.title || "Pin", p.address || "", {
+          id,
+          ownerUid: p.ownerUid || null,
+          ownerName: p.ownerName || "",
+          ownerColor: p.ownerColor || "#ffffff",
+          fromDb: true
+        });
       }
     }
 
@@ -593,15 +859,16 @@
       const col = collection(db, "pins", pinId, "photos");
       const q = query(col, orderBy("createdAt", "desc"));
       const snap = await getDocs(q);
-      return snap.docs.map(d => d.data());
+      return snap.docs.map(d => ({ ...d.data(), __docId: d.id }));
     }
 
-    async function uploadPhoto(pin, file, user){
+    async function uploadPhoto(pin, file, user, description){
       if(!await ensureFirebaseReady()) throw new Error("Firebase not ready");
+
       const { storage, ref, uploadBytes, getDownloadURL, db, collection, addDoc, serverTimestamp } = window.__fb;
 
       const fileExt = (file.name.split(".").pop() || "jpg").toLowerCase();
-      const path = `pins/${pin.id}/${Date.now()}_${Math.random().toString(16).slice(2)}.${fileExt}`;
+      const path = pins/${pin.id}/${Date.now()}_${Math.random().toString(16).slice(2)}.${fileExt};
       const sRef = ref(storage, path);
 
       await uploadBytes(sRef, file);
@@ -613,10 +880,60 @@
         storagePath: path,
         uploadedByUid: user.uid,
         uploadedByName: user.displayName || user.email || "Unknown",
+        description: (description || "").trim(),
         createdAt: serverTimestamp()
       });
 
       return url;
+    }
+
+    async function deletePinWithPhotos(pin){
+      if(!await ensureFirebaseReady()) return false;
+      const user = currentUser();
+      if(!user) return false;
+      if(pin.ownerUid !== user.uid) return false;
+
+      // Only allow deletion if there ARE photos (per your request)
+      const photos = await loadPhotos(pin.id);
+      if(!photos.length){
+        alert("This pin has no photos yet, so it can’t be deleted (rule you wanted).");
+        return false;
+      }
+
+      const ok = confirm("Are you sure you want to delete this pin? This will remove its photos too.");
+      if(!ok) return false;
+
+      const { db, doc, deleteDoc, storage, ref, deleteObject, collection, getDocs } = window.__fb;
+
+      // Delete photo docs + storage objects (best effort)
+      try{
+        const photosCol = collection(db, "pins", pin.id, "photos");
+        const snap = await getDocs(photosCol);
+        for (const d of snap.docs){
+          const data = d.data() || {};
+          const path = data.storagePath;
+          try{ await deleteDoc(d.ref); } catch(e){ console.warn("delete photo doc failed", e); }
+          if(path){
+            try{ await deleteObject(ref(storage, path)); } catch(e){ console.warn("delete storage failed", e); }
+          }
+        }
+      } catch(e){
+        console.warn("photo cleanup failed", e);
+      }
+
+      // Delete pin doc
+      try{
+        await deleteDoc(doc(db, "pins", pin.id));
+      } catch(e){
+        console.error(e);
+        alert("Could not delete pin in Firestore. Check rules.");
+        return false;
+      }
+
+      // Remove from map
+      try{ pin.marker?.remove(); } catch {}
+      pins.delete(pin.id);
+      return true;
     }
 
     function makeGalleryPopup(pin){
@@ -632,14 +949,14 @@
           <button class="gBtn ghost gX" data-x>✕</button>
         </div>
 
-        <div class="gAuthRow" id="authRow">
-          <button class="gBtn primary" data-signin>Sign in to upload</button>
+        <div class="gAuthRow">
+          <button class="gBtn primary" data-signin>Sign in</button>
           <button class="gBtn ghost" data-signout style="display:none;">Sign out</button>
         </div>
 
         <div class="gCard">
           <div class="gStage">
-            <div style="padding:14px;color:rgba(7,17,38,.55);font-weight:800;" id="emptyMsg">No photos yet</div>
+            <div style="padding:14px;color:rgba(7,17,38,.55);font-weight:900;" id="emptyMsg">No photos yet</div>
             <img id="stageImg" style="display:none;" />
             <div class="gNav" id="nav" style="display:none;">
               <button data-prev>‹</button>
@@ -650,29 +967,32 @@
           <div class="gThumbs" id="thumbs" style="display:none;"></div>
 
           <div class="gFooter">
-            <div class="gSmall" id="who"></div>
-            <label class="gBtn primary gUploadLabel" id="uploadWrap" style="display:none;">
-              Upload
-              <input class="gFile" type="file" accept="image/*" />
-            </label>
+            <div class="gRow">
+              <div class="gSmall" id="who"></div>
+              <label class="gBtn primary gUploadLabel" id="uploadWrap" style="display:none;">
+                Upload
+                <input class="gFile" type="file" accept="image/*" />
+              </label>
+            </div>
+
+            <textarea id="desc" class="gText" placeholder="Add a description (optional) for your photo…" style="display:none;"></textarea>
+            <div class="gSmall" id="photoDesc" style="white-space:normal;max-width:none;"></div>
           </div>
         </div>
 
-        <div class="gHint">Tip: Click the map to drop pins. Click a pin to zoom.</div>
+        <div class="gHint">
+          Right-click on the map to add a pin. Double-click <b>your</b> pin to delete (only if it has photos).
+        </div>
       `;
 
-      // Close button: close popup
-      wrap.querySelector("[data-x]").onclick = () => {
-        try { pin.marker?.togglePopup(); } catch {}
-      };
+      wrap.querySelector("[data-x]").onclick = () => { try { pin.marker?.togglePopup(); } catch {} };
 
-      // Auth wiring (if Firebase missing, show hint)
       const signInBtn = wrap.querySelector("[data-signin]");
       const signOutBtn = wrap.querySelector("[data-signout]");
       const uploadWrap = wrap.querySelector("#uploadWrap");
       const fileInput = wrap.querySelector("input[type=file]");
+      const descBox = wrap.querySelector("#desc");
 
-      // Gallery state
       let photos = [];
       let idx = 0;
 
@@ -681,6 +1001,7 @@
       const nav = wrap.querySelector("#nav");
       const thumbs = wrap.querySelector("#thumbs");
       const who = wrap.querySelector("#who");
+      const photoDesc = wrap.querySelector("#photoDesc");
 
       function render(){
         if(!photos.length){
@@ -689,6 +1010,7 @@
           nav.style.display = "none";
           thumbs.style.display = "none";
           who.textContent = "";
+          photoDesc.textContent = "";
           return;
         }
 
@@ -699,7 +1021,8 @@
 
         const p = photos[idx];
         stageImg.src = p.url;
-        who.textContent = `Uploaded by ${p.uploadedByName || "Unknown"}`;
+        who.textContent = Uploaded by ${p.uploadedByName || "Unknown"};
+        photoDesc.textContent = (p.description || "").trim() ? “${p.description.trim()}” : "";
 
         thumbs.innerHTML = "";
         photos.forEach((ph, i) => {
@@ -722,19 +1045,15 @@
         render();
       };
 
-      // When popup opens: load photos
       (async () => {
         try{
-          await ensurePinDoc(pin);
+          await ensurePinDoc(pin, false);
           photos = await loadPhotos(pin.id);
           idx = 0;
           render();
-        } catch(e){
-          console.error(e);
-        }
+        } catch(e){ console.error(e); }
       })();
 
-      // Firebase auth state + actions
       (async () => {
         const ok = await ensureFirebaseReady();
         if(!ok){
@@ -746,19 +1065,18 @@
         const { auth, provider, signInWithPopup, signOut, onAuthStateChanged } = window.__fb;
 
         signInBtn.onclick = async () => {
-          try { await signInWithPopup(auth, provider); }
-          catch (e) { console.error(e); alert("Sign-in failed. Check Firebase Auth settings."); }
+          // Use the same modal experience, but from inside popup
+          const loggedIn = await requireAuthOrPrompt();
+          if(!loggedIn) return;
         };
-        signOutBtn.onclick = async () => {
-          try { await signOut(auth); }
-          catch (e) { console.error(e); }
-        };
+        signOutBtn.onclick = async () => { try { await signOut(auth); } catch(e){ console.error(e); } };
 
         onAuthStateChanged(auth, (user) => {
           const authed = !!user;
           signInBtn.style.display = authed ? "none" : "inline-flex";
           signOutBtn.style.display = authed ? "inline-flex" : "none";
           uploadWrap.style.display = authed ? "inline-flex" : "none";
+          descBox.style.display = authed ? "block" : "none";
         });
 
         fileInput.onchange = async (e) => {
@@ -768,11 +1086,17 @@
           if(!file) return;
 
           try{
-            await uploadPhoto(pin, file, user);
+            const desc = (descBox.value || "").trim();
+            await uploadPhoto(pin, file, user, desc);
+
+            // refresh gallery
             photos = await loadPhotos(pin.id);
             idx = 0;
             render();
+
+            // reset inputs
             fileInput.value = "";
+            descBox.value = "";
           } catch(err){
             console.error(err);
             alert("Upload failed. Check Firebase Storage rules + bucket.");
@@ -783,11 +1107,18 @@
       return wrap;
     }
 
-    function addPin(lng, lat, title="Dropped Pin", address=""){
-      const id = pinIdFromLngLat(lng, lat);
-      const pin = { id, lng, lat, title, address, marker: null };
+    function addPin(lng, lat, title="Dropped Pin", address="", opts={}){
+      const id = opts.id || pinIdFromLngLat(lng, lat);
+      if(pins.has(id)) return pins.get(id);
 
-      const marker = new maplibregl.Marker({ color: "#ffffff" })
+      const ownerUid = opts.ownerUid ?? currentUser()?.uid ?? null;
+      const ownerName = opts.ownerName ?? (currentUser()?.displayName || currentUser()?.email || "") ?? "";
+      const ownerColor = opts.ownerColor ?? colorFromUid(ownerUid);
+
+      const pin = { id, lng, lat, title, address, ownerUid, ownerName, ownerColor, marker: null };
+
+      const markerEl = makeMarkerEl(ownerColor);
+      const marker = new maplibregl.Marker({ element: markerEl })
         .setLngLat([lng, lat])
         .addTo(map);
 
@@ -797,21 +1128,36 @@
 
       popup.setDOMContent(makeGalleryPopup(pin));
 
-      marker.getElement().style.cursor = "pointer";
-      marker.getElement().addEventListener("click", () => {
+      // Click -> zoom
+      markerEl.addEventListener("click", () => {
         map.flyTo({ center:[lng, lat], zoom: 17, speed: 1.2, curve: 1.42 });
       });
 
-      pins.push(pin);
+      // Double-click -> delete (ONLY if owner + has photos, per your request)
+      markerEl.addEventListener("dblclick", async (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        const user = currentUser();
+        if(!user || pin.ownerUid !== user.uid) return; // only owner
+        await deletePinWithPhotos(pin);
+      });
 
-      // Ensure doc exists (best-effort)
-      ensurePinDoc(pin).catch(()=>{});
+      pins.set(pin.id, pin);
+
+      // Create/update doc if new local pin
+      if(!opts.fromDb){
+        ensurePinDoc(pin, true).catch(()=>{});
+      } else {
+        // keep up to date (best effort)
+        ensurePinDoc(pin, false).catch(()=>{});
+      }
+
       return pin;
     }
 
     function restorePinsAfterStyle(){
-      for (const pin of pins){
-        if (pin.marker) pin.marker.addTo(map);
+      for (const [,pin] of pins){
+        try{ pin.marker?.addTo(map); } catch {}
       }
     }
 
@@ -826,20 +1172,21 @@
         antialias: true
       });
 
-      map.on("load", () => {
+      map.on("load", async () => {
         applyCALock();
 
-        // ✅ Click map to drop pins (requires CA)
-        map.on("click", (e) => {
+        // ✅ Load all pins from Firestore so everyone sees them
+        await loadAllPins().catch(console.error);
+
+        // ✅ Right-click to open context menu (instead of left-click adding pins)
+        map.on("contextmenu", (e) => {
           const { lng, lat } = e.lngLat;
-          if (!isInCA(lng, lat)){
-            alert("Pins are limited to California.");
-            return;
-          }
-          const pin = addPin(lng, lat, "Dropped Pin", "");
-          map.flyTo({ center:[lng, lat], zoom: 16.5, speed: 1.2, curve: 1.42 });
-          openSearchCard({ name: pin.title, full: "Dropped on map", lng, lat });
+          if(!isInCA(lng, lat)) return;
+          openCtxMenu(e.originalEvent.clientX, e.originalEvent.clientY, e.lngLat);
         });
+
+        // Close menu on normal click
+        map.on("click", () => closeCtxMenu());
       });
 
       map.on("style.load", () => {
@@ -858,28 +1205,27 @@
 
       const head = document.createElement("div");
       head.className = "dd-head";
-      head.innerHTML = `
+      head.innerHTML = 
         <div class="muted">Searching…</div>
         <button class="btn ghost" id="ddCloseBtn" style="padding:7px 10px;">Close</button>
-      `;
+      ;
       dd.appendChild(head);
       setTimeout(() => {
         const b = $("ddCloseBtn");
         if (b) b.onclick = () => closeDropdown();
       }, 0);
 
-      // CA proximity bias
       const caCenterLng = -119.4179;
       const caCenterLat = 36.7783;
 
       const url =
-        `https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json` +
-        `?key=${MAPTILER_KEY}` +
-        `&limit=10` +
-        `&country=us` +
-        `&autocomplete=true` +
-        `&language=en` +
-        `&proximity=${caCenterLng},${caCenterLat}`;
+        https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json +
+        ?key=${MAPTILER_KEY} +
+        &limit=10 +
+        &country=us +
+        &autocomplete=true +
+        &language=en +
+        &proximity=${caCenterLng},${caCenterLat};
 
       let res, data;
       try{
@@ -893,12 +1239,12 @@
 
           const row = document.createElement("div");
           row.className = "dd-item";
-          row.innerHTML = `
+          row.innerHTML = 
             <div style="width:100%">
               <div class="dd-title">Search is blocked</div>
               <div class="dd-sub">Status: ${res.status}. Open DevTools → Console to see the exact MapTiler error.</div>
             </div>
-          `;
+          ;
           dd.appendChild(row);
 
           if (res.status === 401 || res.status === 403) showGeocodeBlocked(res.status);
@@ -912,12 +1258,12 @@
 
         const row = document.createElement("div");
         row.className = "dd-item";
-        row.innerHTML = `
+        row.innerHTML = 
           <div style="width:100%">
             <div class="dd-title">Network error</div>
             <div class="dd-sub">Couldn’t reach MapTiler. Check internet + key restrictions.</div>
           </div>
-        `;
+        ;
         dd.appendChild(row);
         return;
       }
@@ -928,12 +1274,12 @@
       if (!feats.length){
         const none = document.createElement("div");
         none.className = "dd-item";
-        none.innerHTML = `
+        none.innerHTML = 
           <div style="width:100%">
             <div class="dd-title">No matches</div>
             <div class="dd-sub">Try including city + ZIP (example: “123 Main St, Fresno CA 93722”).</div>
           </div>
-        `;
+        ;
         dd.appendChild(none);
         return;
       }
@@ -957,18 +1303,18 @@
 
         const row = document.createElement("div");
         row.className = "dd-item";
-        row.innerHTML = `
+        row.innerHTML = 
           <div class="dd-ico">📍</div>
           <div style="min-width:0; width:100%;">
             <div class="dd-title">
               ${escapeHtml(nameTop)}
-              ${inCA ? "" : `<span style="color:var(--danger); font-weight:900; margin-left:8px; font-size:12px;">Outside CA</span>`}
+              ${inCA ? "" : <span style="color:var(--danger); font-weight:900; margin-left:8px; font-size:12px;">Outside CA</span>}
             </div>
             <div class="dd-sub">${escapeHtml(placeName)}</div>
           </div>
-        `;
+        ;
 
-        row.onclick = () => {
+        row.onclick = async () => {
           closeDropdown();
 
           $("search").value = placeName;
@@ -980,14 +1326,17 @@
             return;
           }
 
-          // ✅ Drop a pin for the searched address (gallery popup)
-          const pinTitle = (placeType === "address") ? nameTop : placeName;
-          addPin(lng, lat, pinTitle, placeName);
-
+          // ✅ Searching should zoom, and drop a pin ONLY if signed in
           const zoom = (placeType === "address") ? 18.2 : 15.6;
           map.flyTo({ center:[lng, lat], zoom, speed: 1.2, curve: 1.42 });
 
-          openSearchCard({ name: pinTitle, full: placeName, lng, lat });
+          const wantPin = await requireAuthOrPrompt();
+          if(wantPin){
+            const pinTitle = (placeType === "address") ? nameTop : placeName;
+            addPin(lng, lat, pinTitle, placeName);
+          }
+
+          openSearchCard({ name: nameTop, full: placeName, lng, lat });
         };
 
         dd.appendChild(row);
@@ -1037,6 +1386,7 @@
     }
 
     function wireUI(){
+      // Style switch
       $("styleSel").addEventListener("change", () => {
         const v = $("styleSel").value;
         map.setStyle(STYLES[v] || STYLES.streets);
@@ -1048,15 +1398,18 @@
         alert(
           "How to use:\n\n" +
           "• Type an address → Search (or Enter)\n" +
-          "• Click a suggestion to zoom + drop a pin (CA only)\n" +
-          "• Click map to drop a pin anywhere in CA\n" +
-          "• Click a pin to zoom; open its popup to sign-in + upload photos\n" +
+          "• Click a suggestion to zoom\n" +
+          "• Right-click map → Add pin here (sign-in required)\n" +
+          "• Click a pin to zoom\n" +
+          "• Open pin popup to upload photos + optional description\n" +
+          "• Double-click YOUR pin to delete (only if it has photos)\n" +
           "• Use style menu for Dark/Satellite/Hybrid\n\n" +
           "Secret: type IDEN (all caps) then Search\n\n" +
           "Geocoding blocked? Fix MapTiler Allowed HTTP Origins (GitHub Pages)."
         );
       };
 
+      // Search typing
       $("search").addEventListener("input", debounce((e) => {
         const v = e.target.value;
         $("clearSearch").classList.toggle("show", !!v);
@@ -1081,18 +1434,23 @@
       };
 
       document.addEventListener("click", (ev) => {
+        // Close dropdown if clicked outside searchWrap
         const dd = $("dropdown");
         const searchWrap = document.querySelector(".searchWrap");
-        if (dd.classList.contains("open") && searchWrap && !searchWrap.contains(ev.target)) {
-          closeDropdown();
-        }
+        if (dd.classList.contains("open") && searchWrap && !searchWrap.contains(ev.target)) closeDropdown();
+
+        // Close context menu if clicked outside it
+        const ctx = $("ctxMenu");
+        if (ctx.classList.contains("open") && !ctx.contains(ev.target)) closeCtxMenu();
       });
 
       $("btnClearResult").onclick = () => closeSearchCard();
 
+      // Easter egg close
       $("btnEggClose").onclick = () => closeEgg();
       $("egg").addEventListener("click", (e) => { if (e.target && e.target.id === "egg") closeEgg(); });
 
+      // Toolbar toggle
       let collapsed = false;
       $("togglePill").onclick = () => {
         collapsed = !collapsed;
@@ -1100,17 +1458,109 @@
       };
       setToolbarCollapsed(false);
 
+      // Escape closes everything
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
           closeDropdown();
           closeSearchCard();
+          closeCtxMenu();
           if ($("egg").classList.contains("open")) closeEgg();
+          if ($("authModal").classList.contains("open")) closeAuthModal(false);
         }
+      });
+
+      // Context menu actions
+      $("ctxClose").onclick = () => closeCtxMenu();
+      $("ctxAddPin").onclick = async () => {
+        closeCtxMenu();
+        if(!ctxLngLat) return;
+
+        const { lng, lat } = ctxLngLat;
+        if(!isInCA(lng, lat)) return;
+
+        const ok = await requireAuthOrPrompt();
+        if(!ok) return;
+
+        // Create a pin at right-click point
+        const user = currentUser();
+        const pin = addPin(lng, lat, "Dropped Pin", "", { ownerUid: user.uid, ownerName: user.displayName || user.email || "" });
+
+        map.flyTo({ center:[lng, lat], zoom: 16.5, speed: 1.2, curve: 1.42 });
+        openSearchCard({ name: pin.title, full: "Pinned
+          openSearchCard({ name: pin.title, full: "Pinned location", lng, lat });
+      };
+
+      // ===== Auth modal wiring =====
+      $("authClose").onclick = () => closeAuthModal(false);
+
+      $("tabSignIn").onclick = () => setAuthMode("signin");
+      $("tabCreate").onclick = () => setAuthMode("create");
+
+      $("btnGoogle").onclick = async () => {
+        hideAuthError();
+        const ok = await ensureFirebaseReady();
+        if(!ok) return showAuthError("Firebase not ready. Check your Firebase config.");
+        const { auth, provider, signInWithPopup } = window.__fb;
+        try{
+          await signInWithPopup(auth, provider);
+          closeAuthModal(true);
+        } catch(e){
+          console.error(e);
+          showAuthError("Google sign-in failed. Check Firebase Auth settings and authorized domain.");
+        }
+      };
+
+      $("btnEmailAction").onclick = async () => {
+        hideAuthError();
+        const ok = await ensureFirebaseReady();
+        if(!ok) return showAuthError("Firebase not ready. Check your Firebase config.");
+
+        const email = ($("authEmail").value || "").trim();
+        const pass  = ($("authPass").value || "").trim();
+        if(!email || !pass) return showAuthError("Enter email + password.");
+
+        const { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword } = window.__fb;
+
+        try{
+          if(authMode === "create"){
+            await createUserWithEmailAndPassword(auth, email, pass);
+          } else {
+            await signInWithEmailAndPassword(auth, email, pass);
+          }
+          closeAuthModal(true);
+        } catch(e){
+          console.error(e);
+          // Helpful messages for common Firebase auth errors
+          const msg = (e?.code === "auth/email-already-in-use") ? "Email already in use. Try Sign in."
+                    : (e?.code === "auth/invalid-credential") ? "Invalid email or password."
+                    : (e?.code === "auth/weak-password") ? "Password too weak (try 6+ chars)."
+                    : (e?.code === "auth/operation-not-allowed") ? "Enable Email/Password in Firebase Auth → Sign-in method."
+                    : "Auth failed. Check Firebase Authentication settings.";
+          showAuthError(msg);
+        }
+      };
+
+      // Click outside modal closes it
+      $("authModal").addEventListener("click", (e) => {
+        if(e.target && e.target.id === "authModal") closeAuthModal(false);
       });
     }
 
+    // ===== Start App =====
     initMap();
     wireUI();
+
+    // Keep UI in sync with auth state (optional nice-to-have)
+    (async () => {
+      const ok = await ensureFirebaseReady();
+      if(!ok) return;
+      const { auth, onAuthStateChanged } = window.__fb;
+      onAuthStateChanged(auth, (user) => {
+        // no global UI needed; popups/auth modal handle it
+        // but you could add a global "Signed in as ..." later if you want.
+        // console.log("Auth state:", user?.email || user?.displayName || "signed out");
+      });
+    })();
   </script>
 </body>
 </html>
