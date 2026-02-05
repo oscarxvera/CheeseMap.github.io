@@ -127,6 +127,32 @@
     .btn:disabled{opacity:.55; cursor:not-allowed}
     .btn:active{transform: translateY(1px)}
 
+    /* Small auth button in topbar (visible, not in the way) */
+    .authTop{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:9px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      cursor:pointer;
+      font-weight:900;
+      max-width: 220px;
+    }
+    .authTop .dot{
+      width:8px;height:8px;border-radius:99px;
+      background: rgba(255,255,255,.35);
+    }
+    .authTop.signed .dot{background: var(--ok)}
+    .authTop .name{
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 160px;
+    }
+
     /* ===== Dropdown Search results ===== */
     .dropdown{
       position:absolute; top:56px; right:0;
@@ -208,7 +234,7 @@
     .modal.open{display:flex}
     .panel{
       width:min(1040px, 96vw);
-      height:min(86vh, 920px); /* fixed height so columns can scroll cleanly */
+      height:min(86vh, 920px);
       overflow:hidden;
       background: var(--card);
       border:1px solid rgba(255,255,255,.12);
@@ -249,13 +275,14 @@
       display:grid;
       grid-template-columns: 1.35fr .95fr;
       gap:12px;
-      overflow:hidden; /* important: each column scrolls, not the whole body */
+      overflow:hidden;
       flex:1 1 auto;
       min-height:0;
     }
     @media (max-width: 900px){
       .panel{height:min(92vh, 980px)}
       .panelBody{grid-template-columns:1fr;}
+      .searchWrap{min-width: 100%; max-width: 100%;}
     }
 
     .card{
@@ -284,15 +311,25 @@
       border-radius: 16px;
       overflow:hidden;
       border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.06);
+      background: rgba(0,0,0,.22);
     }
     .stage{
       position:relative;
       aspect-ratio: 16/10;
       display:flex; align-items:center; justify-content:center;
-      background: rgba(255,255,255,.06);
+      background: rgba(0,0,0,.22);
     }
-    .stage img{width:100%; height:100%; object-fit:cover; display:none;}
+
+    /* ✅ No cropping: contain */
+    .stage img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      object-position:center;
+      background: rgba(0,0,0,.28);
+      display:none;
+    }
+
     .emptyStage{color:rgba(255,255,255,.70); font-weight:900; padding:16px; text-align:center;}
     .nav{
       position:absolute; inset:0;
@@ -489,6 +526,12 @@
           <div id="dropdown" class="dropdown"></div>
         </div>
 
+        <!-- ✅ Always visible sign-in/create (not in the way) -->
+        <button class="authTop" id="topAuthBtn" title="Sign in / Create account">
+          <span class="dot"></span>
+          <span class="name" id="topAuthName">Sign in / Create</span>
+        </button>
+
         <button id="btnLocate" class="btn ghost">Locate</button>
         <button id="btnHelp" class="btn ghost">Help</button>
       </div>
@@ -545,7 +588,7 @@
                   <span class="pill ok" id="ownerPill" style="display:none;">You own this pin</span>
                 </div>
                 <div class="rowR">
-                  <button class="btn ghost" id="btnSignIn">Sign in</button>
+                  <button class="btn ghost" id="btnSignIn">Sign in / Create</button>
                   <button class="btn ghost" id="btnSignOut" style="display:none;">Sign out</button>
                 </div>
               </div>
@@ -632,7 +675,7 @@
             <div class="commentsWrap">
               <div class="row">
                 <div class="label">Comments</div>
-                <div class="help" id="commentsHint">Sign in to comment.</div>
+                <!-- ✅ Removed the “be nice” style hint entirely -->
               </div>
 
               <div class="row" style="gap:8px;">
@@ -684,7 +727,7 @@
 
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
-    <!-- ================= Firebase ================= -->
+  <!-- ================= Firebase ================= -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
@@ -750,7 +793,7 @@
   <!-- ================= App Script ================= -->
   <script>
     // ======= YOU EDIT THESE =======
-    const MAPTILER_KEY = "GFG1w5G5FvDB4k9dRW1U";
+    const MAPTILER_KEY = "GFG1w5G5FvDB4k9dRW1U"; // <-- your MapTiler key
 
     const STYLES = {
       streets:   `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`,
@@ -759,12 +802,11 @@
       hybrid:    `https://api.maptiler.com/maps/hybrid/style.json?key=${MAPTILER_KEY}`
     };
 
-    // Optional CA lock (keep if you want CA only)
+    // California bounds (keep if you want CA locked)
     const CA_BOUNDS = [
       [-124.482003, 32.528832],
       [-114.131211, 42.009518]
     ];
-    const LOCK_TO_CA = true;
 
     // ======= Helpers =======
     const $ = (id) => document.getElementById(id);
@@ -803,8 +845,9 @@
       }
       return !!window.__fb;
     }
-
-    function currentUser(){ return window.__fb?.auth?.currentUser || null; }
+    function currentUser(){
+      return window.__fb?.auth?.currentUser || null;
+    }
 
     function colorFromUid(uid){
       if(!uid) return "#ffffff";
@@ -852,15 +895,12 @@
       if(ytMatch){
         const id = ytMatch[1];
         return `<iframe width="100%" height="240" style="border:0;border-radius:14px;overflow:hidden"
-          src="https://www.youtube.com/embed/${id}"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen></iframe>`;
+          src="https://www.youtube.com/embed/${id}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
       }
 
       if(u.includes("open.spotify.com/")){
         const embed = u.replace("open.spotify.com", "open.spotify.com/embed");
-        return `<iframe style="border-radius:14px" src="${embed}" width="100%" height="152" frameborder="0"
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
+        return `<iframe style="border-radius:14px" src="${embed}" width="100%" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
       }
 
       if(u.includes("music.apple.com/")){
@@ -870,22 +910,11 @@
           src="${u}"></iframe>`;
       }
 
-      return `<div class="help">Unsupported link type. It will show as a link:</div>
+      return `<div class="help">Unsupported link type:</div>
               <a href="${u}" target="_blank" rel="noopener" style="color:var(--accent); font-weight:900;">Open music</a>`;
     }
 
     // ======= Firebase data model =======
-    // pins/{pinId}
-    //  - title, story, category, musicUrl, address, lng, lat
-    //  - ownerUid, ownerName, ownerColor
-    //  - likeCount (number)
-    // pins/{pinId}/photos/{auto}
-    //  - url, storagePath, uploadedByUid, uploadedByName, caption, createdAt
-    // pins/{pinId}/comments/{auto}
-    //  - uid, name, text, createdAt
-    // pins/{pinId}/likes/{uid}
-    //  - uid, name, createdAt
-
     async function upsertPinDoc(pin, isNew=false){
       if(!await ensureFirebaseReady()) throw new Error("Firebase not ready");
       const { db, doc, setDoc, serverTimestamp } = window.__fb;
@@ -902,7 +931,7 @@
         ownerUid: pin.ownerUid || null,
         ownerName: pin.ownerName || "",
         ownerColor: pin.ownerColor || "#ffffff",
-        likeCount: typeof pin.likeCount === "number" ? pin.likeCount : 0,
+        likeCount: pin.likeCount || 0,
         updatedAt: serverTimestamp()
       };
       if(isNew) payload.createdAt = serverTimestamp();
@@ -946,10 +975,9 @@
       if(!await ensureFirebaseReady()) throw new Error("Firebase not ready");
       const user = currentUser();
       if(!user) throw new Error("Not signed in");
-
       const { storage, ref, uploadBytes, getDownloadURL, db, collection, addDoc, serverTimestamp } = window.__fb;
-      const out = [];
 
+      const out = [];
       for (const file of files){
         const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
         const safe = toSafeFilename(file.name);
@@ -995,7 +1023,8 @@
       const user = currentUser();
       if(!user) throw new Error("Not signed in");
 
-      const { db, doc, getDoc, runTransaction, serverTimestamp } = window.__fb;
+      const { db, doc, getDoc, setDoc, deleteDoc, runTransaction, serverTimestamp } = window.__fb;
+
       const likeRef = doc(db, "pins", pinId, "likes", user.uid);
       const likeSnap = await getDoc(likeRef);
 
@@ -1008,12 +1037,12 @@
           tx.update(pinRef, { likeCount: Math.max(0, current - 1) });
           tx.delete(likeRef);
         } else {
-          tx.update(pinRef, { likeCount: current + 1 });
           tx.set(likeRef, {
             uid: user.uid,
             name: user.displayName || user.email || "Unknown",
             createdAt: serverTimestamp()
           });
+          tx.update(pinRef, { likeCount: current + 1 });
         }
       });
 
@@ -1037,26 +1066,43 @@
 
       const { db, doc, deleteDoc, storage, ref, deleteObject, listAll, collection, getDocs } = window.__fb;
 
-      // delete storage folder objects
+      // delete storage folder objects best effort
       try{
         const folderRef = ref(storage, `pins/${pin.id}`);
         const listing = await listAll(folderRef);
         for (const item of listing.items){
-          try{ await deleteObject(item); } catch(e){ console.warn("delete storage item failed", e); }
+          try{ await deleteObject(item); } catch(e){}
         }
-      } catch(e){ console.warn("listAll failed (ok):", e); }
+      } catch(e){}
 
-      // delete subcollections docs (best effort)
-      const subcols = ["photos","comments","likes"];
-      for (const sub of subcols){
-        try{
-          const snap = await getDocs(collection(db, "pins", pin.id, sub));
-          for (const d of snap.docs){
-            try{ await deleteDoc(d.ref); } catch(e){}
-          }
-        } catch(e){}
-      }
+      // delete photo docs
+      try{
+        const photosCol = collection(db, "pins", pin.id, "photos");
+        const snap = await getDocs(photosCol);
+        for (const d of snap.docs){
+          try{ await deleteDoc(d.ref); } catch(e){}
+        }
+      } catch(e){}
 
+      // delete comments
+      try{
+        const commentsCol = collection(db, "pins", pin.id, "comments");
+        const snap = await getDocs(commentsCol);
+        for (const d of snap.docs){
+          try{ await deleteDoc(d.ref); } catch(e){}
+        }
+      } catch(e){}
+
+      // delete likes
+      try{
+        const likesCol = collection(db, "pins", pin.id, "likes");
+        const snap = await getDocs(likesCol);
+        for (const d of snap.docs){
+          try{ await deleteDoc(d.ref); } catch(e){}
+        }
+      } catch(e){}
+
+      // delete pin doc
       await deleteDoc(doc(db, "pins", pin.id));
     }
 
@@ -1095,9 +1141,10 @@
       hideAuthError();
       if(authResolve){ authResolve(ok); authResolve = null; }
     }
-    async function requireAuth(){
+
+    async function requireAuthOrPrompt(){
       if(!await ensureFirebaseReady()){
-        alert("Firebase not configured yet.");
+        alert("Firebase not ready yet. Refresh and try again.");
         return false;
       }
       if(currentUser()) return true;
@@ -1105,53 +1152,15 @@
       return !!ok && !!currentUser();
     }
 
-    // ===== Context menu =====
-    let ctxLngLat = null;
-    let ctxPinId = null;
-
-    function openCtxMenu(x, y, lngLat, pinId=null){
-      ctxLngLat = lngLat;
-      ctxPinId = pinId;
-
-      const menu = $("ctxMenu");
-      menu.style.left = `${Math.min(x, window.innerWidth - 250)}px`;
-      menu.style.top  = `${Math.min(y, window.innerHeight - 160)}px`;
-
-      // show delete if owner
-      const del = $("ctxDeletePin");
-      del.style.display = "none";
-      if(pinId){
-        const p = pins.get(pinId);
-        const u = currentUser();
-        if(p && u && p.ownerUid === u.uid) del.style.display = "flex";
-      }
-
-      menu.classList.add("open");
-    }
-    function closeCtxMenu(){
-      $("ctxMenu").classList.remove("open");
-      ctxLngLat = null;
-      ctxPinId = null;
-    }
-
     // ===== Map + pins =====
     let map;
-    const pins = new Map(); // pinId -> { id,lng,lat,title,address,ownerUid,ownerName,ownerColor,marker,... }
+    const pins = new Map(); // id -> pin object
+    let ctxLngLat = null;
+    let ctxPinId = null;
+    let lastSearchFeature = null;
 
-    function applyBounds(){
-      if(!LOCK_TO_CA) return;
-      map.setMaxBounds(CA_BOUNDS);
-      map.setMinZoom(5);
-      map.setMaxZoom(20);
-    }
-
-    function setStyle(key){
-      const url = STYLES[key] || STYLES.streets;
-      map.setStyle(url);
-    }
-
-    // ===== Modal state =====
-    let activePin = null;
+    // Modal state
+    let activePinId = null;
     let activePhotos = [];
     let activeIdx = 0;
     let cycleTimer = null;
@@ -1162,690 +1171,773 @@
     }
     function startCycle(){
       stopCycle();
-      // cycle only if 2+ photos
-      if(activePhotos.length < 2) return;
+      if(activePhotos.length <= 1) return;
       cycleTimer = setInterval(() => {
         activeIdx = (activeIdx + 1) % activePhotos.length;
         renderGallery();
       }, 3500);
     }
 
-    function openModal(pin){
-      activePin = pin;
-      isEditing = false;
-
-      $("pinModal").classList.add("open");
-      $("pinModal").setAttribute("aria-hidden","false");
-
-      $("pmTitle").textContent = pin.title || "Memory";
-      $("pmSub").textContent = pin.address || `${pin.lng.toFixed(5)}, ${pin.lat.toFixed(5)}`;
-
-      // reset UI
-      $("pmCategory").value = pin.category || "Other";
-      $("pmTitleInput").value = pin.title || "Memory";
-      $("pmStory").value = pin.story || "";
-      $("pmMusicUrl").value = pin.musicUrl || "";
-      renderMusic(pin.musicUrl || "");
-
-      $("commentsList").innerHTML = "";
-      $("commentInput").value = "";
-
-      // fly button
-      $("pmFly").onclick = () => {
-        map.flyTo({ center:[pin.lng, pin.lat], zoom: 17, speed: 1.2, curve: 1.4 });
-      };
-
-      updateAuthUI();
-      refreshEverything().catch(console.error);
+    function applyCALock(){
+      map.setMaxBounds(CA_BOUNDS);
+      map.setMinZoom(5);
+      map.setMaxZoom(20);
     }
 
+    function closeDropdown(){
+      $("dropdown").classList.remove("open");
+      $("dropdown").innerHTML = "";
+      lastSearchFeature = null;
+    }
+
+    function openCtxMenu(x, y, lngLat, pinId=null){
+      ctxLngLat = lngLat;
+      ctxPinId = pinId;
+
+      const menu = $("ctxMenu");
+      menu.style.left = `${Math.min(x, window.innerWidth - 260)}px`;
+      menu.style.top  = `${Math.min(y, window.innerHeight - 140)}px`;
+
+      // Show delete only if we have a pin and user owns it
+      const del = $("ctxDeletePin");
+      if(pinId && pins.has(pinId) && currentUser() && pins.get(pinId).ownerUid === currentUser().uid){
+        del.style.display = "flex";
+      } else {
+        del.style.display = "none";
+      }
+
+      menu.classList.add("open");
+    }
+    function closeCtxMenu(){
+      $("ctxMenu").classList.remove("open");
+      ctxLngLat = null;
+      ctxPinId = null;
+    }
+
+    function openModal(){
+      $("pinModal").classList.add("open");
+      $("pinModal").setAttribute("aria-hidden","false");
+    }
     function closeModal(){
       stopCycle();
-      activePin = null;
+      $("pinModal").classList.remove("open");
+      $("pinModal").setAttribute("aria-hidden","true");
+      activePinId = null;
       activePhotos = [];
       activeIdx = 0;
       isEditing = false;
-
-      $("pinModal").classList.remove("open");
-      $("pinModal").setAttribute("aria-hidden","true");
+      setEditMode(false);
     }
 
-    function renderMusic(url){
-      const html = musicEmbedHTML(url);
-      const wrap = $("musicFrameWrap");
-      const box = $("musicEmbed");
-      wrap.innerHTML = html || "";
-      box.style.display = html ? "block" : "none";
-    }
-
-    function setEditing(on){
+    function setEditMode(on){
       isEditing = !!on;
+      const user = currentUser();
+      const pin = activePinId ? pins.get(activePinId) : null;
+      const canEdit = !!user && !!pin && pin.ownerUid === user.uid;
 
-      const canEdit = !!currentUser() && activePin && currentUser().uid === activePin.ownerUid;
+      $("pmCategory").disabled = !(on && canEdit);
+      $("pmTitleInput").disabled = !(on && canEdit);
+      $("pmStory").disabled = !(on && canEdit);
+      $("pmMusicUrl").disabled = !(on && canEdit);
 
-      const fields = ["pmCategory","pmTitleInput","pmStory","pmMusicUrl"];
-      for (const f of fields){
-        $(f).disabled = !(on && canEdit);
+      $("btnSave").style.display = (on && canEdit) ? "inline-flex" : "none";
+      $("btnCancelEdit").style.display = (on && canEdit) ? "inline-flex" : "none";
+      $("btnEdit").style.display = (!on && canEdit) ? "inline-flex" : "none";
+    }
+
+    function setAuthUI(){
+      const user = currentUser();
+
+      // Top auth button
+      const topBtn = $("topAuthBtn");
+      const topName = $("topAuthName");
+      topBtn.classList.toggle("signed", !!user);
+      topName.textContent = user ? (user.displayName || user.email || "Signed in") : "Sign in / Create";
+
+      // Modal pills/buttons
+      if(user){
+        $("authPill").textContent = `Signed in as ${user.displayName || user.email || "User"}`;
+        $("authPill").classList.remove("bad");
+        $("authPill").classList.add("ok");
+
+        $("btnSignIn").style.display = "none";
+        $("btnSignOut").style.display = "inline-flex";
+      } else {
+        $("authPill").textContent = "Sign in to upload, like, comment, and add pins";
+        $("authPill").classList.remove("ok");
+        $("authPill").classList.add("bad");
+
+        $("btnSignIn").style.display = "inline-flex";
+        $("btnSignOut").style.display = "none";
       }
 
-      $("btnSave").style.display = on ? "inline-flex" : "none";
-      $("btnCancelEdit").style.display = on ? "inline-flex" : "none";
-      $("btnEdit").style.display = on ? "none" : "inline-flex";
-    }
+      // Enable/disable modal actions
+      const enabled = !!user && !!activePinId;
+      $("btnUpload").disabled = !enabled;
+      $("uploadCaption").disabled = !enabled;
+      $("btnLike").disabled = !enabled;
+      $("commentInput").disabled = !enabled;
+      $("btnPostComment").disabled = !enabled;
 
-    function updateAuthUI(){
-      const u = currentUser();
-      const authed = !!u;
-
-      $("btnSignIn").style.display = authed ? "none" : "inline-flex";
-      $("btnSignOut").style.display = authed ? "inline-flex" : "none";
-
-      $("btnUpload").disabled = !authed || !activePin;
-      $("uploadCaption").disabled = !authed || !activePin;
-
-      $("btnLike").disabled = !authed || !activePin;
-      $("commentInput").disabled = !authed || !activePin;
-      $("btnPostComment").disabled = !authed || !activePin;
-
-      // Edit buttons: only owner can edit
-      const owner = !!u && !!activePin && u.uid === activePin.ownerUid;
-      $("btnEdit").disabled = !owner;
-      $("btnSave").disabled = !owner;
-      $("btnCancelEdit").disabled = !owner;
-
-      $("ownerPill").style.display = owner ? "inline-flex" : "none";
-      $("btnDeletePin").style.display = owner ? "inline-flex" : "none";
-
-      $("authPill").textContent = authed ? `Signed in as ${u.displayName || u.email}` : "Not signed in";
-      $("authPill").classList.toggle("ok", authed);
-      $("authPill").classList.toggle("bad", !authed);
-
-      $("commentsHint").textContent = authed ? "Be nice 🙂" : "Sign in to comment.";
+      // Owner-only controls
+      const pin = activePinId ? pins.get(activePinId) : null;
+      const isOwner = !!user && !!pin && pin.ownerUid === user.uid;
+      $("ownerPill").style.display = isOwner ? "inline-flex" : "none";
+      $("btnDeletePin").style.display = isOwner ? "inline-flex" : "none";
+      $("btnEdit").disabled = !isOwner;
+      if(!isOwner) setEditMode(false);
     }
 
     function renderGallery(){
-      const empty = $("stageEmpty");
       const img = $("stageImg");
+      const empty = $("stageEmpty");
       const nav = $("stageNav");
       const thumbs = $("thumbs");
       const meta = $("photoMeta");
+
+      thumbs.innerHTML = "";
 
       if(!activePhotos.length){
         empty.style.display = "block";
         img.style.display = "none";
         nav.style.display = "none";
-        thumbs.innerHTML = "";
         meta.textContent = "";
+        stopCycle();
         return;
       }
 
       empty.style.display = "none";
       img.style.display = "block";
-
-      // clamp idx
-      activeIdx = Math.max(0, Math.min(activeIdx, activePhotos.length - 1));
-      const p = activePhotos[activeIdx];
-
-      img.src = p.url;
-
       nav.style.display = activePhotos.length > 1 ? "flex" : "none";
 
-      thumbs.innerHTML = "";
-      activePhotos.forEach((ph, i) => {
-        const t = document.createElement("div");
-        t.className = "thumb" + (i === activeIdx ? " active" : "");
-        const im = document.createElement("img");
-        im.src = ph.url;
-        t.appendChild(im);
-
-        const b = document.createElement("div");
-        b.className = "badge";
-        b.textContent = ph.uploadedByName ? `by ${ph.uploadedByName}` : "uploaded";
-        t.appendChild(b);
-
-        t.onclick = () => {
-          activeIdx = i;
-          renderGallery();
-          startCycle(); // restart cycle after manual pick
-        };
-        thumbs.appendChild(t);
-      });
+      activeIdx = Math.max(0, Math.min(activeIdx, activePhotos.length - 1));
+      const p = activePhotos[activeIdx];
+      img.src = p.url;
 
       const cap = (p.caption || "").trim();
-      const who = p.uploadedByName ? `Uploaded by ${p.uploadedByName}` : "Uploaded";
-      meta.textContent = cap ? `${who} • “${cap}”` : who;
+      const by = p.uploadedByName || "Unknown";
+      meta.textContent = `${by}${cap ? " • “" + cap + "”" : ""}`;
+
+      activePhotos.forEach((ph, i) => {
+        const d = document.createElement("div");
+        d.className = "thumb" + (i === activeIdx ? " active" : "");
+        const im = document.createElement("img");
+        im.src = ph.url;
+        d.appendChild(im);
+
+        if(ph.uploadedByName){
+          const b = document.createElement("div");
+          b.className = "badge";
+          b.textContent = `by ${ph.uploadedByName}`;
+          d.appendChild(b);
+        }
+
+        d.onclick = () => {
+          activeIdx = i;
+          renderGallery();
+          // If user manually clicks, restart cycle but don't feel jumpy
+          startCycle();
+        };
+        thumbs.appendChild(d);
+      });
+    }
+
+    function renderMusic(url){
+      const u = (url || "").trim();
+      const wrap = $("musicFrameWrap");
+      const box = $("musicEmbed");
+      wrap.innerHTML = "";
+      if(!u){
+        box.style.display = "none";
+        return;
+      }
+      wrap.innerHTML = musicEmbedHTML(u);
+      box.style.display = "block";
     }
 
     function renderComments(list){
-      const wrap = $("commentsList");
-      wrap.innerHTML = "";
-      for (const c of list){
-        const div = document.createElement("div");
-        div.className = "comment";
-        const dt = c.createdAt?.toDate ? c.createdAt.toDate() : null;
-        const when = dt ? dt.toLocaleString() : "";
-        div.innerHTML = `
-          <div class="meta">${escapeHtml(c.name || "Unknown")}${when ? " • " + escapeHtml(when) : ""}</div>
-          <div class="txt">${escapeHtml(c.text || "")}</div>
-        `;
-        wrap.appendChild(div);
-      }
-    }
+      const host = $("commentsList");
+      host.innerHTML = "";
 
-    async function refreshEverything(){
-      if(!activePin) return;
-
-      // pull latest pin doc (title/story/category/music/likeCount)
-      const fresh = await fetchPin(activePin.id);
-      if(fresh){
-        // update active pin
-        Object.assign(activePin, fresh);
-
-        $("pmTitle").textContent = fresh.title || "Memory";
-        $("pmSub").textContent = fresh.address || `${fresh.lng?.toFixed?.(5)}, ${fresh.lat?.toFixed?.(5)}`;
-        if(!isEditing){
-          $("pmCategory").value = fresh.category || "Other";
-          $("pmTitleInput").value = fresh.title || "Memory";
-          $("pmStory").value = fresh.story || "";
-          $("pmMusicUrl").value = fresh.musicUrl || "";
-          renderMusic(fresh.musicUrl || "");
-        }
-        $("likeCountPill").textContent = `${fresh.likeCount || 0} likes`;
-      } else {
-        $("likeCountPill").textContent = "0 likes";
-      }
-
-      // photos
-      activePhotos = await fetchPhotos(activePin.id);
-      activeIdx = 0;
-      renderGallery();
-      startCycle(); // ✅ auto-cycle if multiple
-
-      // comments
-      const comments = await fetchComments(activePin.id);
-      renderComments(comments);
-
-      // like state
-      const liked = await isLikedByMe(activePin.id);
-      $("btnLike").textContent = liked ? "💔 Unlike" : "❤️ Like";
-
-      updateAuthUI();
-      setEditing(false);
-    }
-
-    // ===== Pins on map =====
-    function addPinMarker(pin, fromDb=false){
-      if(pins.has(pin.id)) return pins.get(pin.id);
-
-      const el = markerEl(pin.ownerColor || "#ffffff");
-      const marker = new maplibregl.Marker({ element: el })
-        .setLngLat([pin.lng, pin.lat])
-        .addTo(map);
-
-      const obj = { ...pin, marker };
-      pins.set(pin.id, obj);
-
-      el.addEventListener("click", (ev) => {
-        ev.stopPropagation();
-        openModal(obj);
-      });
-
-      // right-click on marker -> context menu for delete
-      el.addEventListener("contextmenu", (ev) => {
-        ev.preventDefault();
-        ev.stopPropagation();
-        openCtxMenu(ev.clientX, ev.clientY, { lng: obj.lng, lat: obj.lat }, obj.id);
-      });
-
-      // mobile long-press / double-tap fallback: open modal already on single tap (click)
-      // (Safari iOS triggers click on tap)
-
-      if(!fromDb){
-        upsertPinDoc(obj, true).catch(console.warn);
-      } else {
-        upsertPinDoc(obj, false).catch(()=>{});
-      }
-
-      return obj;
-    }
-
-    async function createPinAt(lng, lat, address=""){
-      if(LOCK_TO_CA && !isInCA(lng, lat)){
-        alert("That spot is outside California (CA lock is on).");
+      if(!list.length){
+        const d = document.createElement("div");
+        d.className = "help";
+        d.textContent = "No comments yet.";
+        host.appendChild(d);
         return;
       }
 
-      const ok = await requireAuth();
+      list.forEach(c => {
+        const item = document.createElement("div");
+        item.className = "comment";
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = `${c.name || "Unknown"} • ${c.createdAt?.toDate ? c.createdAt.toDate().toLocaleString() : ""}`;
+        const txt = document.createElement("div");
+        txt.className = "txt";
+        txt.textContent = c.text || "";
+        item.appendChild(meta);
+        item.appendChild(txt);
+        host.appendChild(item);
+      });
+    }
+
+    async function openPin(pinId, fly=false){
+      const pin = pins.get(pinId);
+      if(!pin) return;
+
+      activePinId = pinId;
+
+      $("pmTitle").textContent = pin.title || "Memory";
+      $("pmSub").textContent = pin.address || `${pin.lng.toFixed(5)}, ${pin.lat.toFixed(5)}`;
+
+      $("pmCategory").value = pin.category || "Other";
+      $("pmTitleInput").value = pin.title || "";
+      $("pmStory").value = pin.story || "";
+      $("pmMusicUrl").value = pin.musicUrl || "";
+
+      renderMusic(pin.musicUrl || "");
+
+      // Likes
+      $("likeCountPill").textContent = `${pin.likeCount || 0} likes`;
+      try{
+        const liked = await isLikedByMe(pinId);
+        $("btnLike").textContent = liked ? "💙 Liked" : "❤️ Like";
+      } catch {}
+
+      // Photos + comments
+      activePhotos = await fetchPhotos(pinId);
+      activeIdx = 0;
+      renderGallery();
+      startCycle();
+
+      const comments = await fetchComments(pinId);
+      renderComments(comments);
+
+      setAuthUI();
+      setEditMode(false);
+      openModal();
+
+      if(fly){
+        map.flyTo({ center:[pin.lng, pin.lat], zoom: 17, speed: 1.2, curve: 1.42 });
+      }
+    }
+
+    async function createPinAt(lng, lat, address=""){
+      const ok = await requireAuthOrPrompt();
       if(!ok) return;
 
-      const u = currentUser();
+      const user = currentUser();
+      const id = pinIdFromLngLat(lng, lat);
+      if(pins.has(id)){
+        await openPin(id, true);
+        return;
+      }
+
       const pin = {
-        id: pinIdFromLngLat(lng, lat),
+        id,
         lng, lat,
         address: address || "",
         title: "New Memory",
         story: "",
         category: "Other",
         musicUrl: "",
-        ownerUid: u.uid,
-        ownerName: u.displayName || u.email || "",
-        ownerColor: colorFromUid(u.uid),
-        likeCount: 0
+        ownerUid: user.uid,
+        ownerName: user.displayName || user.email || "Unknown",
+        ownerColor: colorFromUid(user.uid),
+        likeCount: 0,
+        marker: null
       };
 
-      const p = addPinMarker(pin, false);
-      openModal(p);
+      addPinMarker(pin, true);
+      await upsertPinDoc(pin, true);
+
+      // open immediately in edit mode
+      await openPin(pin.id, false);
+      setEditMode(true);
     }
 
-    async function deleteActivePin(){
-      if(!activePin) return;
-      const u = currentUser();
-      if(!u || u.uid !== activePin.ownerUid){
-        alert("Only the pin owner can delete this pin.");
-        return;
-      }
+    function addPinMarker(pin, fromDb=false){
+      const el = markerEl(pin.ownerColor || "#ffffff");
 
-      const ok = confirm("Delete this pin and all its photos/comments/likes?");
-      if(!ok) return;
+      const marker = new maplibregl.Marker({ element: el })
+        .setLngLat([pin.lng, pin.lat])
+        .addTo(map);
 
-      try{
-        await deletePinEverywhere(activePin);
-        // remove marker
-        try{ activePin.marker?.remove(); } catch {}
-        pins.delete(activePin.id);
-        closeModal();
-      } catch(e){
-        console.error(e);
-        alert("Delete failed. Check Firestore/Storage rules.");
+      pin.marker = marker;
+      pins.set(pin.id, pin);
+
+      // Click opens modal
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openPin(pin.id, false).catch(console.error);
+      });
+
+      // Right-click on marker opens context menu with delete (desktop)
+      el.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openCtxMenu(e.clientX, e.clientY, { lng: pin.lng, lat: pin.lat }, pin.id);
+      });
+
+      // Long press on marker (mobile)
+      let pressTimer = null;
+      el.addEventListener("pointerdown", (e) => {
+        if(e.pointerType === "mouse") return;
+        pressTimer = setTimeout(() => {
+          openCtxMenu(e.clientX, e.clientY, { lng: pin.lng, lat: pin.lat }, pin.id);
+        }, 520);
+      });
+      el.addEventListener("pointerup", () => { if(pressTimer) clearTimeout(pressTimer); pressTimer=null; });
+      el.addEventListener("pointercancel", () => { if(pressTimer) clearTimeout(pressTimer); pressTimer=null; });
+
+      return marker;
+    }
+
+    async function loadPins(){
+      const all = await fetchAllPins();
+      for (const p of all){
+        if(!p || typeof p.lng !== "number" || typeof p.lat !== "number") continue;
+        if(!isInCA(p.lng, p.lat)) continue;
+
+        const id = p.id || p.__id;
+        if(pins.has(id)) continue;
+
+        addPinMarker({
+          id,
+          lng: p.lng,
+          lat: p.lat,
+          address: p.address || "",
+          title: p.title || "Memory",
+          story: p.story || "",
+          category: p.category || "Other",
+          musicUrl: p.musicUrl || "",
+          ownerUid: p.ownerUid || null,
+          ownerName: p.ownerName || "",
+          ownerColor: p.ownerColor || "#ffffff",
+          likeCount: p.likeCount || 0,
+          marker: null
+        }, true);
       }
     }
 
     // ===== MapTiler search =====
-    function closeDropdown(){
-      $("dropdown").classList.remove("open");
-      $("dropdown").innerHTML = "";
-    }
-
-    async function maptilerSearch(q){
-      const queryText = (q || "").trim();
-      if(queryText.length < 2){ closeDropdown(); return; }
-
+    async function maptilerSearch(qText){
+      const q = (qText || "").trim();
       const dd = $("dropdown");
       dd.innerHTML = "";
+      if(q.length < 2){ closeDropdown(); return; }
+
       dd.classList.add("open");
 
       const head = document.createElement("div");
       head.className = "dd-head";
-      head.innerHTML = `<div style="font-weight:900">Results</div><div class="muted">MapTiler</div>`;
+      head.innerHTML = `<div><b>Results</b> <span class="muted">MapTiler</span></div><div class="muted">Press Enter to search</div>`;
       dd.appendChild(head);
 
-      const url = `https://api.maptiler.com/geocoding/${encodeURIComponent(queryText)}.json?key=${MAPTILER_KEY}&limit=6&country=us`;
-      let json;
-
+      const url = `https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${MAPTILER_KEY}&autocomplete=true&limit=6&country=us`;
+      let res;
       try{
-        const res = await fetch(url);
-        if(!res.ok){
-          if(res.status === 403 || res.status === 401) showGeocodeBlocked(res.status);
-          dd.innerHTML = `<div style="padding:12px;color:var(--muted);font-weight:900">Search failed (${res.status})</div>`;
-          return;
-        }
-        json = await res.json();
+        res = await fetch(url);
       } catch(e){
-        dd.innerHTML = `<div style="padding:12px;color:var(--muted);font-weight:900">Search failed (network)</div>`;
+        dd.innerHTML = `<div class="dd-head"><div><b>Network error</b></div><div class="muted">Try again</div></div>`;
         return;
       }
 
-      const feats = json?.features || [];
+      if(res.status === 401 || res.status === 403){
+        showGeocodeBlocked(res.status);
+        closeDropdown();
+        return;
+      }
+      if(!res.ok){
+        dd.innerHTML = `<div class="dd-head"><div><b>Error</b></div><div class="muted">Status ${res.status}</div></div>`;
+        return;
+      }
+
+      const data = await res.json();
+      const feats = (data && data.features) ? data.features : [];
       if(!feats.length){
-        dd.innerHTML += `<div style="padding:12px;color:var(--muted);font-weight:900">No results</div>`;
+        const row = document.createElement("div");
+        row.className = "dd-item";
+        row.innerHTML = `<div class="dd-ico">🤷</div><div><div class="dd-title">No results</div><div class="dd-sub">Try a more specific address</div></div>`;
+        dd.appendChild(row);
         return;
       }
 
       feats.forEach((f) => {
-        const place = f.place_name || f.text || "Result";
-        const center = f.center || [];
-        const lng = center[0], lat = center[1];
-        if(typeof lng !== "number" || typeof lat !== "number") return;
-
-        const row = document.createElement("div");
-        row.className = "dd-item";
-        row.innerHTML = `
+        const name = f.text || f.place_name || "Result";
+        const full = f.place_name || "";
+        const [lng, lat] = f.center || [];
+        const item = document.createElement("div");
+        item.className = "dd-item";
+        item.innerHTML = `
           <div class="dd-ico">📍</div>
           <div style="min-width:0">
-            <div class="dd-title">${escapeHtml(f.text || place)}</div>
-            <div class="dd-sub">${escapeHtml(place)}</div>
+            <div class="dd-title">${escapeHtml(name)}</div>
+            <div class="dd-sub">${escapeHtml(full)}</div>
           </div>
         `;
-        row.onclick = () => {
-          closeDropdown();
-          $("search").value = place;
-          $("clearSearch").classList.add("show");
-
-          map.flyTo({ center:[lng, lat], zoom: 16, speed: 1.15, curve: 1.4 });
-
-          // show inline actions to add pin to this address
-          const dd2 = $("dropdown");
-          dd2.innerHTML = "";
-          dd2.classList.add("open");
-          const h2 = document.createElement("div");
-          h2.className = "dd-head";
-          h2.innerHTML = `<div style="font-weight:900">Selected</div><div class="muted">Actions</div>`;
-          dd2.appendChild(h2);
-
-          const info = document.createElement("div");
-          info.className = "dd-item";
-          info.innerHTML = `
-            <div class="dd-ico">✅</div>
-            <div style="min-width:0">
-              <div class="dd-title">${escapeHtml(f.text || "Address")}</div>
-              <div class="dd-sub">${escapeHtml(place)}</div>
-            </div>
-          `;
-          dd2.appendChild(info);
-
-          const actions = document.createElement("div");
-          actions.className = "dd-actions";
-          const btnAdd = document.createElement("button");
-          btnAdd.className = "btn";
-          btnAdd.textContent = "📌 Add pin to this address";
-          btnAdd.onclick = async () => {
-            closeDropdown();
-            await createPinAt(lng, lat, place);
-          };
-          const btnClose = document.createElement("button");
-          btnClose.className = "btn ghost";
-          btnClose.textContent = "Close";
-          btnClose.onclick = closeDropdown;
-
-          actions.appendChild(btnAdd);
-          actions.appendChild(btnClose);
-          dd2.appendChild(actions);
+        item.onclick = () => {
+          lastSearchFeature = { name, full, lng, lat };
+          map.flyTo({ center:[lng, lat], zoom: 16, speed: 1.2, curve: 1.42 });
+          renderDropdownActions();
         };
-        dd.appendChild(row);
+        dd.appendChild(item);
       });
+
+      renderDropdownActions();
+    }
+
+    function renderDropdownActions(){
+      const dd = $("dropdown");
+      // remove old actions
+      dd.querySelectorAll(".dd-actions").forEach(n => n.remove());
+      if(!lastSearchFeature) return;
+
+      const actions = document.createElement("div");
+      actions.className = "dd-actions";
+      actions.innerHTML = `
+        <button class="btn" id="ddAddPin">Add pin at this address</button>
+        <button class="btn ghost" id="ddClose">Close</button>
+      `;
+      dd.appendChild(actions);
+
+      actions.querySelector("#ddAddPin").onclick = async () => {
+        const f = lastSearchFeature;
+        if(!f || typeof f.lng !== "number" || typeof f.lat !== "number") return;
+        closeDropdown();
+        await createPinAt(f.lng, f.lat, f.full || "");
+      };
+      actions.querySelector("#ddClose").onclick = () => closeDropdown();
     }
 
     // ===== Init map =====
-    async function init(){
-      // map
+    function initMap(){
       map = new maplibregl.Map({
         container: "map",
         style: STYLES.streets,
-        bounds: LOCK_TO_CA ? CA_BOUNDS : undefined,
-        fitBoundsOptions: LOCK_TO_CA ? { padding: 40, maxZoom: 12 } : undefined,
+        bounds: CA_BOUNDS,
+        fitBoundsOptions: { padding: 40, maxZoom: 12 },
         pitch: 45,
         bearing: -15,
         antialias: true
       });
 
       map.on("load", async () => {
-        applyBounds();
+        applyCALock();
+        await loadPins().catch(console.error);
 
-        // load pins
-        const all = await fetchAllPins().catch(()=>[]);
-        for (const p of all){
-          if(!p || typeof p.lng !== "number" || typeof p.lat !== "number") continue;
-          if(LOCK_TO_CA && !isInCA(p.lng, p.lat)) continue;
-          addPinMarker({
-            id: p.id || p.__id,
-            lng: p.lng,
-            lat: p.lat,
-            address: p.address || "",
-            title: p.title || "Memory",
-            story: p.story || "",
-            category: p.category || "Other",
-            musicUrl: p.musicUrl || "",
-            ownerUid: p.ownerUid || null,
-            ownerName: p.ownerName || "",
-            ownerColor: p.ownerColor || "#ffffff",
-            likeCount: p.likeCount || 0
-          }, true);
-        }
-
-        // right click menu to add pin
+        // Right click on map for context menu
         map.on("contextmenu", (e) => {
           const { lng, lat } = e.lngLat;
-          if(LOCK_TO_CA && !isInCA(lng, lat)) return;
+          if(!isInCA(lng, lat)) return;
           openCtxMenu(e.originalEvent.clientX, e.originalEvent.clientY, e.lngLat, null);
         });
 
-        // double click (desktop + mobile-friendly gesture) to open add menu
-        map.on("dblclick", (e) => {
-          e.preventDefault();
-          const { lng, lat } = e.lngLat;
-          if(LOCK_TO_CA && !isInCA(lng, lat)) return;
-          openCtxMenu(e.originalEvent.clientX, e.originalEvent.clientY, e.lngLat, null);
-        });
+        // Tap map closes ctx + dropdown
+        map.on("click", () => { closeCtxMenu(); closeDropdown(); });
 
-        map.on("click", () => closeCtxMenu());
+        // Long press on map (mobile)
+        let lpTimer = null;
+        map.getCanvas().addEventListener("pointerdown", (ev) => {
+          if(ev.pointerType === "mouse") return;
+          lpTimer = setTimeout(() => {
+            const rect = map.getCanvas().getBoundingClientRect();
+            const point = [ev.clientX - rect.left, ev.clientY - rect.top];
+            const lngLat = map.unproject(point);
+            if(!isInCA(lngLat.lng, lngLat.lat)) return;
+            openCtxMenu(ev.clientX, ev.clientY, lngLat, null);
+          }, 550);
+        });
+        ["pointerup","pointercancel"].forEach(evt => {
+          map.getCanvas().addEventListener(evt, () => { if(lpTimer) clearTimeout(lpTimer); lpTimer=null; });
+        });
       });
 
-      map.on("style.load", () => applyBounds());
+      map.on("style.load", () => {
+        applyCALock();
+        // Re-add markers if needed (MapLibre keeps markers, but safe to keep bounds)
+      });
+    }
 
-      // ===== UI wiring =====
-      $("styleSel").addEventListener("change", (e) => setStyle(e.target.value));
-
-      // search box
-      $("search").addEventListener("input", debounce(() => {
-        const val = $("search").value.trim();
-        $("clearSearch").classList.toggle("show", !!val);
-        maptilerSearch(val);
-      }, 220));
-
-      $("btnSearch").onclick = () => maptilerSearch($("search").value);
-
-      $("clearSearch").onclick = () => {
-        $("search").value = "";
-        $("clearSearch").classList.remove("show");
-        closeDropdown();
-      };
-
-      // locate button
-      $("btnLocate").onclick = () => {
-        if(!navigator.geolocation){
-          alert("Geolocation not supported.");
-          return;
+    // ===== Wire UI =====
+    function wireUI(){
+      // Top auth button
+      $("topAuthBtn").onclick = async () => {
+        const user = currentUser();
+        if(user){
+          // quick sign out option (no menu)
+          const ok = confirm("Sign out?");
+          if(!ok) return;
+          try{ await window.__fb.signOut(window.__fb.auth); } catch(e){}
+        } else {
+          await openAuthModal();
         }
-        navigator.geolocation.getCurrentPosition((pos) => {
-          const lng = pos.coords.longitude;
-          const lat = pos.coords.latitude;
-          map.flyTo({ center:[lng, lat], zoom: 14, speed: 1.15, curve: 1.4 });
-        }, () => alert("Couldn’t get your location (permission denied?)."), { enableHighAccuracy:true, timeout:8000 });
       };
 
-      $("btnHelp").onclick = () => {
-        alert(
-          "How to use:\n\n" +
-          "• Right-click (or double-click) the map to add a pin.\n" +
-          "• Click a pin to open the memory modal.\n" +
-          "• Upload 1+ photos — gallery auto-cycles when there’s more than one.\n" +
-          "• Only the owner can edit/delete a pin."
+      // Search
+      const runSearch = debounce(() => maptilerSearch($("search").value), 220);
+      $("search").addEventListener("input", () => {
+        const v = $("search").value || "";
+        $("clearSearch").classList.toggle("show", v.length > 0);
+        runSearch();
+      });
+      $("search").addEventListener("keydown", (e) => {
+        if(e.key === "Enter"){
+          e.preventDefault();
+          maptilerSearch($("search").value);
+        }
+        if(e.key === "Escape") closeDropdown();
+      });
+      $("btnSearch").onclick = () => maptilerSearch($("search").value);
+      $("clearSearch").onclick = () => { $("search").value=""; $("clearSearch").classList.remove("show"); closeDropdown(); };
+
+      // Style switch
+      $("styleSel").onchange = () => {
+        const k = $("styleSel").value;
+        map.setStyle(STYLES[k] || STYLES.streets);
+      };
+
+      // Locate
+      $("btnLocate").onclick = () => {
+        if(!navigator.geolocation) return alert("Geolocation not supported.");
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const lng = pos.coords.longitude;
+            const lat = pos.coords.latitude;
+            map.flyTo({ center:[lng, lat], zoom: 14, speed: 1.2, curve: 1.42 });
+          },
+          () => alert("Could not get location. Check permissions."),
+          { enableHighAccuracy:true, timeout: 8000 }
         );
       };
 
-      // context menu actions
+      // Help
+      $("btnHelp").onclick = () => {
+        alert(
+          "Tips:\n\n" +
+          "• Search an address to fly there, then click “Add pin at this address”.\n" +
+          "• Right-click (or long-press on phone) to open the menu and add a pin.\n" +
+          "• Click any pin to open the full story in the center.\n" +
+          "• Upload 1+ photos — the gallery auto-cycles when there’s more than one.\n"
+        );
+      };
+
+      // Context menu actions
+      $("ctxClose").onclick = closeCtxMenu;
+
       $("ctxAddPin").onclick = async () => {
-        if(!ctxLngLat) return;
-        const { lng, lat } = ctxLngLat;
+        const ll = ctxLngLat;
         closeCtxMenu();
-        await createPinAt(lng, lat, "");
+        if(!ll) return;
+        await createPinAt(ll.lng, ll.lat, "");
       };
 
       $("ctxDeletePin").onclick = async () => {
-        if(!ctxPinId) return;
-        const pin = pins.get(ctxPinId);
+        const id = ctxPinId;
         closeCtxMenu();
-        if(pin){
-          openModal(pin);
-          // delete from modal, but you can also delete immediately if you want:
-          // await deleteActivePin();
+        if(!id || !pins.has(id)) return;
+        const pin = pins.get(id);
+        try{
+          await deletePinEverywhere(pin);
+          try{ pin.marker?.remove(); } catch {}
+          pins.delete(id);
+          if(activePinId === id) closeModal();
+        } catch(e){
+          alert(e.message || "Could not delete pin.");
         }
       };
 
-      $("ctxClose").onclick = closeCtxMenu;
-
-      // modal close
+      // Modal controls
       $("pmClose").onclick = closeModal;
       $("pinModal").addEventListener("click", (e) => {
         if(e.target === $("pinModal")) closeModal();
       });
 
-      // gallery nav
+      $("pmFly").onclick = () => {
+        const pin = activePinId ? pins.get(activePinId) : null;
+        if(!pin) return;
+        map.flyTo({ center:[pin.lng, pin.lat], zoom: 17, speed: 1.2, curve: 1.42 });
+      };
+
+      // Gallery nav
       $("prevBtn").onclick = () => {
-        if(activePhotos.length < 2) return;
+        if(!activePhotos.length) return;
         activeIdx = (activeIdx - 1 + activePhotos.length) % activePhotos.length;
         renderGallery();
         startCycle();
       };
       $("nextBtn").onclick = () => {
-        if(activePhotos.length < 2) return;
+        if(!activePhotos.length) return;
         activeIdx = (activeIdx + 1) % activePhotos.length;
         renderGallery();
         startCycle();
       };
 
-      // upload flow
-      $("btnUpload").onclick = async () => {
-        if(!activePin) return;
-        const ok = await requireAuth();
-        if(!ok) return;
-        $("fileInput").click();
+      // Sign in/out inside modal
+      $("btnSignIn").onclick = async () => { await openAuthModal(); };
+      $("btnSignOut").onclick = async () => {
+        try{ await window.__fb.signOut(window.__fb.auth); } catch(e){}
       };
 
-      $("fileInput").addEventListener("change", async (e) => {
+      // Upload
+      $("btnUpload").onclick = () => { $("fileInput").click(); };
+      $("fileInput").onchange = async (e) => {
         const files = Array.from(e.target.files || []);
-        if(!files.length || !activePin) return;
-
+        if(!files.length || !activePinId) return;
         try{
           $("btnUpload").disabled = true;
-          const caption = $("uploadCaption").value || "";
-          await uploadPhotos(activePin.id, files, caption);
-
-          // reset input so same file can be reselected later
-          $("fileInput").value = "";
-          $("uploadCaption").value = "";
+          const cap = $("uploadCaption").value || "";
+          await uploadPhotos(activePinId, files, cap);
 
           // refresh photos and start cycling
-          activePhotos = await fetchPhotos(activePin.id);
+          activePhotos = await fetchPhotos(activePinId);
           activeIdx = 0;
           renderGallery();
-          startCycle(); // ✅ ensures cycling after multi-upload
+          startCycle();
+
+          $("fileInput").value = "";
+          $("uploadCaption").value = "";
         } catch(err){
-          console.error(err);
-          alert("Upload failed. Check Storage rules + sign-in.");
+          alert(err.message || "Upload failed. Check Storage rules + bucket.");
         } finally {
-          updateAuthUI();
+          setAuthUI();
         }
-      });
+      };
 
-      // like
+      // Like
       $("btnLike").onclick = async () => {
-        if(!activePin) return;
+        if(!activePinId) return;
         try{
-          await toggleLike(activePin.id);
-          await refreshEverything();
+          const liked = await toggleLike(activePinId);
+          const pin = pins.get(activePinId);
+          // Refresh pin doc count from Firestore quickly
+          const fresh = await fetchPin(activePinId);
+          if(fresh){
+            pin.likeCount = fresh.likeCount || 0;
+            $("likeCountPill").textContent = `${pin.likeCount} likes`;
+          }
+          $("btnLike").textContent = liked ? "💙 Liked" : "❤️ Like";
         } catch(e){
-          console.error(e);
-          alert("Like failed. Sign in first.");
+          alert(e.message || "Could not like.");
         }
       };
 
-      // comments
-      $("btnPostComment").onclick = async () => {
-        if(!activePin) return;
+      // Delete pin (owner)
+      $("btnDeletePin").onclick = async () => {
+        if(!activePinId) return;
+        const pin = pins.get(activePinId);
+        if(!pin) return;
         try{
-          await addComment(activePin.id, $("commentInput").value);
-          $("commentInput").value = "";
-          const comments = await fetchComments(activePin.id);
-          renderComments(comments);
-          // scroll right panel to comments area
-          $("rightScroll").scrollTo({ top: $("rightScroll").scrollHeight, behavior:"smooth" });
+          await deletePinEverywhere(pin);
+          try{ pin.marker?.remove(); } catch {}
+          pins.delete(pin.id);
+          closeModal();
         } catch(e){
-          console.error(e);
-          alert("Comment failed. Sign in first.");
+          alert(e.message || "Could not delete pin.");
         }
       };
 
-      // edit/save/cancel
-      $("btnEdit").onclick = () => setEditing(true);
+      // Edit / Save
+      $("btnEdit").onclick = () => setEditMode(true);
 
       $("btnCancelEdit").onclick = async () => {
-        setEditing(false);
-        await refreshEverything();
+        if(!activePinId) return;
+        const fresh = await fetchPin(activePinId);
+        const pin = pins.get(activePinId);
+        if(fresh && pin){
+          pin.title = fresh.title || pin.title;
+          pin.story = fresh.story || "";
+          pin.category = fresh.category || "Other";
+          pin.musicUrl = fresh.musicUrl || "";
+
+          $("pmTitle").textContent = pin.title || "Memory";
+          $("pmCategory").value = pin.category || "Other";
+          $("pmTitleInput").value = pin.title || "";
+          $("pmStory").value = pin.story || "";
+          $("pmMusicUrl").value = pin.musicUrl || "";
+          renderMusic(pin.musicUrl || "");
+        }
+        setEditMode(false);
       };
 
       $("btnSave").onclick = async () => {
-        if(!activePin) return;
-        const u = currentUser();
-        if(!u || u.uid !== activePin.ownerUid) return;
+        if(!activePinId) return;
+        const pin = pins.get(activePinId);
+        const user = currentUser();
+        if(!pin || !user || pin.ownerUid !== user.uid) return;
 
-        const upd = {
+        const next = {
+          ...pin,
           category: $("pmCategory").value,
-          title: $("pmTitleInput").value.trim() || "Memory",
-          story: $("pmStory").value.trim(),
-          musicUrl: $("pmMusicUrl").value.trim()
+          title: ($("pmTitleInput").value || "").trim() || "Memory",
+          story: ($("pmStory").value || "").trim(),
+          musicUrl: ($("pmMusicUrl").value || "").trim()
         };
 
         try{
-          if(!await ensureFirebaseReady()) throw new Error("Firebase not ready");
-          const { db, doc, updateDoc, serverTimestamp } = window.__fb;
-          await updateDoc(doc(db, "pins", activePin.id), { ...upd, updatedAt: serverTimestamp() });
+          await upsertPinDoc(next, false);
+          // update local
+          pin.category = next.category;
+          pin.title = next.title;
+          pin.story = next.story;
+          pin.musicUrl = next.musicUrl;
 
-          // update local + header
-          Object.assign(activePin, upd);
-          $("pmTitle").textContent = activePin.title || "Memory";
-          renderMusic(activePin.musicUrl || "");
-
-          setEditing(false);
+          $("pmTitle").textContent = pin.title;
+          renderMusic(pin.musicUrl);
+          setEditMode(false);
         } catch(e){
-          console.error(e);
-          alert("Save failed. Check Firestore rules.");
+          alert(e.message || "Could not save.");
         }
       };
 
-      // delete pin (from modal)
-      $("btnDeletePin").onclick = deleteActivePin;
+      // Music live preview when editing
+      $("pmMusicUrl").addEventListener("input", debounce(() => {
+        if(!isEditing) return;
+        renderMusic($("pmMusicUrl").value);
+      }, 250));
 
-      // auth buttons (sticky bar)
-      $("btnSignIn").onclick = async () => {
-        await openAuthModal(); // resolves after sign-in attempt
-      };
-
-      $("btnSignOut").onclick = async () => {
+      // Comments
+      $("btnPostComment").onclick = async () => {
+        if(!activePinId) return;
+        const t = $("commentInput").value || "";
         try{
-          if(!await ensureFirebaseReady()) return;
-          await window.__fb.signOut(window.__fb.auth);
+          await addComment(activePinId, t);
+          $("commentInput").value = "";
+          const comments = await fetchComments(activePinId);
+          renderComments(comments);
+
+          // scroll to comments area in right column
+          $("rightScroll").scrollTo({ top: $("rightScroll").scrollHeight, behavior: "smooth" });
         } catch(e){
-          console.error(e);
+          alert(e.message || "Could not post comment.");
         }
       };
 
-      // auth modal events
+      // Auth modal buttons
       $("authClose").onclick = () => closeAuthModal(false);
       $("tabSignIn").onclick = () => setAuthMode("signin");
       $("tabCreate").onclick = () => setAuthMode("create");
 
       $("btnGoogle").onclick = async () => {
         try{
-          if(!await ensureFirebaseReady()) throw new Error("Firebase not ready");
+          await ensureFirebaseReady();
           const { auth, provider, signInWithPopup } = window.__fb;
           await signInWithPopup(auth, provider);
           closeAuthModal(true);
         } catch(e){
-          console.error(e);
-          showAuthError(e?.message || "Google sign-in failed");
+          showAuthError(e.message || "Google sign in failed.");
         }
       };
 
       $("btnEmailAction").onclick = async () => {
-        const email = $("authEmail").value.trim();
-        const pass = $("authPass").value;
-        if(!email || !pass){ showAuthError("Enter email + password"); return; }
-
+        const email = ($("authEmail").value || "").trim();
+        const pass = ($("authPass").value || "").trim();
+        if(!email || !pass) return showAuthError("Enter email and password.");
         try{
-          if(!await ensureFirebaseReady()) throw new Error("Firebase not ready");
+          await ensureFirebaseReady();
           const { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword } = window.__fb;
-
           if(authMode === "create"){
             await createUserWithEmailAndPassword(auth, email, pass);
           } else {
@@ -1853,27 +1945,33 @@
           }
           closeAuthModal(true);
         } catch(e){
-          console.error(e);
-          showAuthError(e?.message || "Email sign-in failed");
+          showAuthError(e.message || "Email sign in failed.");
         }
       };
-
-      // auth state observer
-      (async () => {
-        const ok = await ensureFirebaseReady();
-        if(!ok) return;
-        const { auth, onAuthStateChanged } = window.__fb;
-
-        onAuthStateChanged(auth, () => {
-          updateAuthUI();
-          // if modal is open, refresh like button text and owner UI
-          if(activePin) refreshEverything().catch(()=>{});
-        });
-      })();
     }
 
-    // Start
-    init().catch(console.error);
+    async function bootAuthWatcher(){
+      await ensureFirebaseReady();
+      const { auth, onAuthStateChanged } = window.__fb;
+      onAuthStateChanged(auth, async (user) => {
+        setAuthUI();
+
+        // If user is signed in and we have an active pin, refresh liked state
+        if(activePinId){
+          try{
+            const liked = await isLikedByMe(activePinId);
+            $("btnLike").textContent = liked ? "💙 Liked" : "❤️ Like";
+          } catch {}
+        }
+      });
+    }
+
+    // ===== Boot =====
+    (function start(){
+      initMap();
+      wireUI();
+      bootAuthWatcher().catch(console.error);
+    })();
   </script>
 </body>
 </html>
