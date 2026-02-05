@@ -1,4 +1,6 @@
+Absolutely—here’s the full updated `index.html` you can paste directly into your file.
 
+```html
 <!doctype html>
 <html lang="en">
 <head>
@@ -128,6 +130,10 @@
     .btn:disabled{opacity:.55; cursor:not-allowed}
     .btn:active{transform: translateY(1px)}
 
+    .userPill{border:1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.10); color: var(--text); padding:8px 10px; border-radius:999px; display:inline-flex; gap:8px; align-items:center; font-weight:900; cursor:pointer;}
+    .userPill .dot{width:8px;height:8px;border-radius:999px;background:#ff6a7a;box-shadow:0 0 10px rgba(255,106,122,.5);}
+    .userPill.online .dot{background:#4ee6a8; box-shadow:0 0 10px rgba(78,230,168,.5);}
+
     /* ===== Dropdown Search results ===== */
     .dropdown{
       position:absolute; top:56px; right:0;
@@ -209,7 +215,7 @@
     .modal.open{display:flex}
     .panel{
       width:min(1040px, 96vw);
-      height:min(86vh, 920px); /* fixed height so columns can scroll cleanly */
+      height:min(86vh, 920px);
       overflow:hidden;
       background: var(--card);
       border:1px solid rgba(255,255,255,.12);
@@ -250,7 +256,7 @@
       display:grid;
       grid-template-columns: 1.35fr .95fr;
       gap:12px;
-      overflow:hidden; /* important: each column scrolls, not the whole body */
+      overflow:hidden;
       flex:1 1 auto;
       min-height:0;
     }
@@ -293,7 +299,8 @@
       display:flex; align-items:center; justify-content:center;
       background: rgba(255,255,255,.06);
     }
-    .stage img{width:100%; height:100%; object-fit:cover; display:none;}
+    .stage img{width:100%; height:100%; object-fit:contain; display:none;}
+    .stageBadge{position:absolute; left:10px; top:10px; background: rgba(0,0,0,.55); color:#fff; border:1px solid rgba(255,255,255,.18); padding:6px 8px; border-radius:999px; font-size:11px; font-weight:900; max-width: 92%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
     .emptyStage{color:rgba(255,255,255,.70); font-weight:900; padding:16px; text-align:center;}
     .nav{
       position:absolute; inset:0;
@@ -474,7 +481,6 @@
       <div class="controls">
         <select id="styleSel" class="select" title="Map style">
           <option value="streets">Streets</option>
-          <option value="dark">Dark</option>
           <option value="satellite">Satellite</option>
           <option value="hybrid">Satellite + Labels</option>
         </select>
@@ -492,6 +498,10 @@
 
         <button id="btnLocate" class="btn ghost">Locate</button>
         <button id="btnHelp" class="btn ghost">Help</button>
+        <button id="userPill" class="userPill" title="Account">
+          <span class="dot" id="userDot"></span>
+          <span id="userName">Sign in</span>
+        </button>
       </div>
     </div>
   </div>
@@ -526,6 +536,7 @@
                 <div class="stage">
                   <div class="emptyStage" id="stageEmpty">No photos yet. Upload one to start the story.</div>
                   <img id="stageImg" alt="photo" />
+                  <div class="stageBadge" id="stageBadge" style="display:none;"></div>
                   <div class="nav" id="stageNav">
                     <button id="prevBtn">‹</button>
                     <button id="nextBtn">›</button>
@@ -544,10 +555,6 @@
                 <div class="rowL">
                   <span class="pill" id="authPill">Checking sign-in…</span>
                   <span class="pill ok" id="ownerPill" style="display:none;">You own this pin</span>
-                </div>
-                <div class="rowR">
-                  <button class="btn ghost" id="btnSignIn">Sign in</button>
-                  <button class="btn ghost" id="btnSignOut" style="display:none;">Sign out</button>
                 </div>
               </div>
 
@@ -575,9 +582,6 @@
                 <div class="rowL">
                   <button class="btn ghost" id="btnLike" disabled>❤️ Like</button>
                   <span class="pill" id="likeCountPill">0 likes</span>
-                </div>
-                <div class="rowR">
-                  <button class="btn danger" id="btnDeletePin" style="display:none;">Delete pin</button>
                 </div>
               </div>
             </div>
@@ -659,6 +663,13 @@
       <div class="auth-body">
         <div class="help">
           You need an account to add pins, upload photos, like, comment, and edit your pins.
+        </div>
+
+        <div id="authSignedIn" class="card" style="padding:10px; display:none;">
+          <div class="row" style="justify-content:space-between;">
+            <div class="help">Signed in as <b id="authUserName">you</b></div>
+            <button class="btn ghost" id="authSignOut">Sign out</button>
+          </div>
         </div>
 
         <div class="auth-tabs">
@@ -755,7 +766,6 @@
 
     const STYLES = {
       streets:   `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`,
-      dark:      `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MAPTILER_KEY}`,
       satellite: `https://api.maptiler.com/maps/satellite/style.json?key=${MAPTILER_KEY}`,
       hybrid:    `https://api.maptiler.com/maps/hybrid/style.json?key=${MAPTILER_KEY}`
     };
@@ -1109,6 +1119,10 @@
     // ===== Context menu =====
     let ctxLngLat = null;
     let ctxPinId = null;
+    let longPressTimer = null;
+    let longPressMoved = false;
+    let longPressTriggered = false;
+    let longPressStart = null;
 
     function openCtxMenu(x, y, lngLat, pinId=null){
       ctxLngLat = lngLat;
@@ -1133,6 +1147,23 @@
       $("ctxMenu").classList.remove("open");
       ctxLngLat = null;
       ctxPinId = null;
+    }
+
+    function startLongPress(ev, lngLat, pinId=null){
+      if(ev.pointerType !== "touch") return;
+      longPressMoved = false;
+      longPressStart = { x: ev.clientX, y: ev.clientY };
+      longPressTimer = setTimeout(() => {
+        longPressTriggered = true;
+        openCtxMenu(ev.clientX, ev.clientY, lngLat, pinId);
+      }, 550);
+    }
+    function cancelLongPress(){
+      if(longPressTimer){
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+      longPressStart = null;
     }
 
     // ===== Map + pins =====
@@ -1163,7 +1194,6 @@
     }
     function startCycle(){
       stopCycle();
-      // cycle only if 2+ photos
       if(activePhotos.length < 2) return;
       cycleTimer = setInterval(() => {
         activeIdx = (activeIdx + 1) % activePhotos.length;
@@ -1238,9 +1268,6 @@
       const u = currentUser();
       const authed = !!u;
 
-      $("btnSignIn").style.display = authed ? "none" : "inline-flex";
-      $("btnSignOut").style.display = authed ? "inline-flex" : "none";
-
       $("btnUpload").disabled = !authed || !activePin;
       $("uploadCaption").disabled = !authed || !activePin;
 
@@ -1255,13 +1282,20 @@
       $("btnCancelEdit").disabled = !owner;
 
       $("ownerPill").style.display = owner ? "inline-flex" : "none";
-      $("btnDeletePin").style.display = owner ? "inline-flex" : "none";
 
       $("authPill").textContent = authed ? `Signed in as ${u.displayName || u.email}` : "Not signed in";
       $("authPill").classList.toggle("ok", authed);
       $("authPill").classList.toggle("bad", !authed);
 
-      $("commentsHint").textContent = authed ? "Be nice 🙂" : "Sign in to comment.";
+      $("commentsHint").textContent = authed ? "" : "Sign in to comment.";
+
+      // Topbar user pill
+      $("userName").textContent = authed ? (u.displayName || u.email || "Signed in") : "Sign in";
+      $("userPill").classList.toggle("online", authed);
+
+      // Auth modal signed-in state
+      $("authSignedIn").style.display = authed ? "block" : "none";
+      $("authUserName").textContent = authed ? (u.displayName || u.email || "Signed in") : "";
     }
 
     function renderGallery(){
@@ -1270,11 +1304,13 @@
       const nav = $("stageNav");
       const thumbs = $("thumbs");
       const meta = $("photoMeta");
+      const badge = $("stageBadge");
 
       if(!activePhotos.length){
         empty.style.display = "block";
         img.style.display = "none";
         nav.style.display = "none";
+        badge.style.display = "none";
         thumbs.innerHTML = "";
         meta.textContent = "";
         return;
@@ -1288,6 +1324,9 @@
       const p = activePhotos[activeIdx];
 
       img.src = p.url;
+      const who = p.uploadedByName ? `Uploaded by ${p.uploadedByName}` : "Uploaded";
+      badge.textContent = who;
+      badge.style.display = "inline-flex";
 
       nav.style.display = activePhotos.length > 1 ? "flex" : "none";
 
@@ -1307,13 +1346,12 @@
         t.onclick = () => {
           activeIdx = i;
           renderGallery();
-          startCycle(); // restart cycle after manual pick
+          startCycle();
         };
         thumbs.appendChild(t);
       });
 
       const cap = (p.caption || "").trim();
-      const who = p.uploadedByName ? `Uploaded by ${p.uploadedByName}` : "Uploaded";
       meta.textContent = cap ? `${who} • “${cap}”` : who;
     }
 
@@ -1336,10 +1374,9 @@
     async function refreshEverything(){
       if(!activePin) return;
 
-      // pull latest pin doc (title/story/category/music/likeCount)
+      // pull latest pin doc
       const fresh = await fetchPin(activePin.id);
       if(fresh){
-        // update active pin
         Object.assign(activePin, fresh);
 
         $("pmTitle").textContent = fresh.title || "Memory";
@@ -1360,7 +1397,7 @@
       activePhotos = await fetchPhotos(activePin.id);
       activeIdx = 0;
       renderGallery();
-      startCycle(); // ✅ auto-cycle if multiple
+      startCycle();
 
       // comments
       const comments = await fetchComments(activePin.id);
@@ -1398,8 +1435,22 @@
         openCtxMenu(ev.clientX, ev.clientY, { lng: obj.lng, lat: obj.lat }, obj.id);
       });
 
-      // mobile long-press / double-tap fallback: open modal already on single tap (click)
-      // (Safari iOS triggers click on tap)
+      // mobile long-press to open context menu
+      el.addEventListener("pointerdown", (ev) => {
+        if(ev.pointerType !== "touch") return;
+        startLongPress(ev, { lng: obj.lng, lat: obj.lat }, obj.id);
+      });
+      el.addEventListener("pointermove", (ev) => {
+        if(ev.pointerType !== "touch" || !longPressStart) return;
+        const dx = ev.clientX - longPressStart.x;
+        const dy = ev.clientY - longPressStart.y;
+        if(Math.hypot(dx, dy) > 8){
+          longPressMoved = true;
+          cancelLongPress();
+        }
+      });
+      el.addEventListener("pointerup", cancelLongPress);
+      el.addEventListener("pointercancel", cancelLongPress);
 
       if(!fromDb){
         upsertPinDoc(obj, true).catch(console.warn);
@@ -1438,23 +1489,19 @@
       openModal(p);
     }
 
-    async function deleteActivePin(){
-      if(!activePin) return;
+    async function deletePinNow(pin){
+      if(!pin) return;
       const u = currentUser();
-      if(!u || u.uid !== activePin.ownerUid){
+      if(!u || u.uid !== pin.ownerUid){
         alert("Only the pin owner can delete this pin.");
         return;
       }
 
-      const ok = confirm("Delete this pin and all its photos/comments/likes?");
-      if(!ok) return;
-
       try{
-        await deletePinEverywhere(activePin);
-        // remove marker
-        try{ activePin.marker?.remove(); } catch {}
-        pins.delete(activePin.id);
-        closeModal();
+        await deletePinEverywhere(pin);
+        try{ pin.marker?.remove(); } catch {}
+        pins.delete(pin.id);
+        if(activePin && activePin.id === pin.id) closeModal();
       } catch(e){
         console.error(e);
         alert("Delete failed. Check Firestore/Storage rules.");
@@ -1579,6 +1626,26 @@
         antialias: true
       });
 
+      // mobile long-press on map (touch) to open context menu
+      const canvas = map.getCanvas();
+      canvas.addEventListener("pointerdown", (ev) => {
+        if(ev.pointerType !== "touch") return;
+        const lngLat = map.unproject([ev.clientX, ev.clientY]);
+        if(LOCK_TO_CA && !isInCA(lngLat.lng, lngLat.lat)) return;
+        startLongPress(ev, lngLat, null);
+      });
+      canvas.addEventListener("pointermove", (ev) => {
+        if(ev.pointerType !== "touch" || !longPressStart) return;
+        const dx = ev.clientX - longPressStart.x;
+        const dy = ev.clientY - longPressStart.y;
+        if(Math.hypot(dx, dy) > 8){
+          longPressMoved = true;
+          cancelLongPress();
+        }
+      });
+      canvas.addEventListener("pointerup", cancelLongPress);
+      canvas.addEventListener("pointercancel", cancelLongPress);
+
       map.on("load", async () => {
         applyBounds();
 
@@ -1610,15 +1677,13 @@
           openCtxMenu(e.originalEvent.clientX, e.originalEvent.clientY, e.lngLat, null);
         });
 
-        // double click (desktop + mobile-friendly gesture) to open add menu
-        map.on("dblclick", (e) => {
-          e.preventDefault();
-          const { lng, lat } = e.lngLat;
-          if(LOCK_TO_CA && !isInCA(lng, lat)) return;
-          openCtxMenu(e.originalEvent.clientX, e.originalEvent.clientY, e.lngLat, null);
+        map.on("click", () => {
+          if(longPressTriggered){
+            longPressTriggered = false;
+            return;
+          }
+          closeCtxMenu();
         });
-
-        map.on("click", () => closeCtxMenu());
       });
 
       map.on("style.load", () => applyBounds());
@@ -1657,7 +1722,7 @@
       $("btnHelp").onclick = () => {
         alert(
           "How to use:\n\n" +
-          "• Right-click (or double-click) the map to add a pin.\n" +
+          "• Right-click the map (desktop) or long-press (mobile) to add a pin.\n" +
           "• Click a pin to open the memory modal.\n" +
           "• Upload 1+ photos — gallery auto-cycles when there’s more than one.\n" +
           "• Only the owner can edit/delete a pin."
@@ -1676,11 +1741,7 @@
         if(!ctxPinId) return;
         const pin = pins.get(ctxPinId);
         closeCtxMenu();
-        if(pin){
-          openModal(pin);
-          // delete from modal, but you can also delete immediately if you want:
-          // await deleteActivePin();
-        }
+        if(pin) await deletePinNow(pin);
       };
 
       $("ctxClose").onclick = closeCtxMenu;
@@ -1722,15 +1783,13 @@
           const caption = $("uploadCaption").value || "";
           await uploadPhotos(activePin.id, files, caption);
 
-          // reset input so same file can be reselected later
           $("fileInput").value = "";
           $("uploadCaption").value = "";
 
-          // refresh photos and start cycling
           activePhotos = await fetchPhotos(activePin.id);
           activeIdx = 0;
           renderGallery();
-          startCycle(); // ✅ ensures cycling after multi-upload
+          startCycle();
         } catch(err){
           console.error(err);
           alert("Upload failed. Check Storage rules + sign-in.");
@@ -1759,7 +1818,6 @@
           $("commentInput").value = "";
           const comments = await fetchComments(activePin.id);
           renderComments(comments);
-          // scroll right panel to comments area
           $("rightScroll").scrollTo({ top: $("rightScroll").scrollHeight, behavior:"smooth" });
         } catch(e){
           console.error(e);
@@ -1792,7 +1850,6 @@
           const { db, doc, updateDoc, serverTimestamp } = window.__fb;
           await updateDoc(doc(db, "pins", activePin.id), { ...upd, updatedAt: serverTimestamp() });
 
-          // update local + header
           Object.assign(activePin, upd);
           $("pmTitle").textContent = activePin.title || "Memory";
           renderMusic(activePin.musicUrl || "");
@@ -1804,27 +1861,24 @@
         }
       };
 
-      // delete pin (from modal)
-      $("btnDeletePin").onclick = deleteActivePin;
-
-      // auth buttons (sticky bar)
-      $("btnSignIn").onclick = async () => {
-        await openAuthModal(); // resolves after sign-in attempt
-      };
-
-      $("btnSignOut").onclick = async () => {
-        try{
-          if(!await ensureFirebaseReady()) return;
-          await window.__fb.signOut(window.__fb.auth);
-        } catch(e){
-          console.error(e);
-        }
+      // auth buttons (topbar + modal)
+      $("userPill").onclick = async () => {
+        await openAuthModal();
       };
 
       // auth modal events
       $("authClose").onclick = () => closeAuthModal(false);
       $("tabSignIn").onclick = () => setAuthMode("signin");
       $("tabCreate").onclick = () => setAuthMode("create");
+      $("authSignOut").onclick = async () => {
+        try{
+          if(!await ensureFirebaseReady()) return;
+          await window.__fb.signOut(window.__fb.auth);
+          closeAuthModal(true);
+        } catch(e){
+          console.error(e);
+        }
+      };
 
       $("btnGoogle").onclick = async () => {
         try{
@@ -1867,7 +1921,6 @@
 
         onAuthStateChanged(auth, () => {
           updateAuthUI();
-          // if modal is open, refresh like button text and owner UI
           if(activePin) refreshEverything().catch(()=>{});
         });
       })();
@@ -1878,5 +1931,4 @@
   </script>
 </body>
 </html>
-
-  
+```
