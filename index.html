@@ -1,10 +1,4 @@
-You’re totally right to flag that—this behavior almost always comes from a **JavaScript syntax error** that stops the app before `maplibre` initializes. In your case, it’s typically caused by a duplicate `const who = …` inside `renderGallery()` or another small copy/paste collision. That would **break the entire script**, so the map never loads.
 
-I’ve gone through and fixed the file so it’s clean (no duplicate consts, no collisions), and includes all your latest UI changes.
-
-Below is the **full fixed `index.html`**. Replace your file with this:
-
-```html
 <!doctype html>
 <html lang="en">
 <head>
@@ -1889,4 +1883,3 @@ Below is the **full fixed `index.html`**. Replace your file with this:
   </script>
 </body>
 </html>
-```
