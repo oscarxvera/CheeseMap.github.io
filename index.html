@@ -1,6 +1,3 @@
-Absolutely—here’s the full updated `index.html` you can paste directly into your file.
-
-```html
 <!doctype html>
 <html lang="en">
 <head>
@@ -23,6 +20,7 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       --ok:#4ee6a8;
       --shadow: 0 14px 40px rgba(0,0,0,.38);
       --radius: 18px;
+      --pin-size: 18px;
     }
     *{box-sizing:border-box}
     html, body {height:100%}
@@ -261,8 +259,22 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       min-height:0;
     }
     @media (max-width: 900px){
-      .panel{height:min(92vh, 980px)}
-      .panelBody{grid-template-columns:1fr;}
+      :root{--pin-size: 22px;}
+      .topbarWrap{top: max(8px, env(safe-area-inset-top)); left:8px; right:8px;}
+      .topbar{flex-wrap:wrap; gap:8px; padding:10px;}
+      .controls{width:100%; justify-content:space-between;}
+      .searchWrap{min-width:100%; max-width:100%;}
+      .search{padding:12px 42px 12px 38px;}
+      .btn, .select, .userPill{min-height:44px; padding:10px 12px;}
+      .dropdown{width: min(720px, 96vw); left:0; right:auto;}
+
+      .panel{height:min(94vh, 1100px)}
+      .panelBody{grid-template-columns:1fr; padding:10px;}
+      .gallery{padding:10px;}
+      .rightScroll{padding:10px;}
+      .stickyBar{padding:10px;}
+      .label{font-size:12px;}
+      .input, .textarea, .select2{font-size:14px;}
     }
 
     .card{
@@ -761,7 +773,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
 
   <!-- ================= App Script ================= -->
   <script>
-    // ======= YOU EDIT THESE =======
     const MAPTILER_KEY = "GFG1w5G5FvDB4k9dRW1U";
 
     const STYLES = {
@@ -770,14 +781,12 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       hybrid:    `https://api.maptiler.com/maps/hybrid/style.json?key=${MAPTILER_KEY}`
     };
 
-    // Optional CA lock (keep if you want CA only)
     const CA_BOUNDS = [
       [-124.482003, 32.528832],
       [-114.131211, 42.009518]
     ];
     const LOCK_TO_CA = true;
 
-    // ======= Helpers =======
     const $ = (id) => document.getElementById(id);
     const debounce = (fn, ms=250) => { let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; };
 
@@ -826,9 +835,10 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
     }
 
     function markerEl(color){
+      const size = getComputedStyle(document.documentElement).getPropertyValue("--pin-size").trim() || "18px";
       const el = document.createElement("div");
-      el.style.width = "18px";
-      el.style.height = "18px";
+      el.style.width = size;
+      el.style.height = size;
       el.style.borderRadius = "999px";
       el.style.background = color || "#ffffff";
       el.style.border = "2px solid rgba(255,255,255,.95)";
@@ -851,7 +861,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
         .slice(0, 60) || "photo";
     }
 
-    // ======= Music embed =======
     function musicEmbedHTML(url){
       const u = String(url || "").trim();
       if(!u) return "";
@@ -884,18 +893,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       return `<div class="help">Unsupported link type. It will show as a link:</div>
               <a href="${u}" target="_blank" rel="noopener" style="color:var(--accent); font-weight:900;">Open music</a>`;
     }
-
-    // ======= Firebase data model =======
-    // pins/{pinId}
-    //  - title, story, category, musicUrl, address, lng, lat
-    //  - ownerUid, ownerName, ownerColor
-    //  - likeCount (number)
-    // pins/{pinId}/photos/{auto}
-    //  - url, storagePath, uploadedByUid, uploadedByName, caption, createdAt
-    // pins/{pinId}/comments/{auto}
-    //  - uid, name, text, createdAt
-    // pins/{pinId}/likes/{uid}
-    //  - uid, name, createdAt
 
     async function upsertPinDoc(pin, isNew=false){
       if(!await ensureFirebaseReady()) throw new Error("Firebase not ready");
@@ -1048,7 +1045,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
 
       const { db, doc, deleteDoc, storage, ref, deleteObject, listAll, collection, getDocs } = window.__fb;
 
-      // delete storage folder objects
       try{
         const folderRef = ref(storage, `pins/${pin.id}`);
         const listing = await listAll(folderRef);
@@ -1057,7 +1053,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
         }
       } catch(e){ console.warn("listAll failed (ok):", e); }
 
-      // delete subcollections docs (best effort)
       const subcols = ["photos","comments","likes"];
       for (const sub of subcols){
         try{
@@ -1071,7 +1066,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       await deleteDoc(doc(db, "pins", pin.id));
     }
 
-    // ===== Auth modal logic =====
     let authMode = "signin";
     let authResolve = null;
 
@@ -1116,13 +1110,15 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       return !!ok && !!currentUser();
     }
 
-    // ===== Context menu =====
     let ctxLngLat = null;
     let ctxPinId = null;
     let longPressTimer = null;
     let longPressMoved = false;
     let longPressTriggered = false;
     let longPressStart = null;
+    let lastTapTime = 0;
+    let lastTapPos = null;
+    let touchDoubleTapEnabled = false;
 
     function openCtxMenu(x, y, lngLat, pinId=null){
       ctxLngLat = lngLat;
@@ -1132,7 +1128,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       menu.style.left = `${Math.min(x, window.innerWidth - 250)}px`;
       menu.style.top  = `${Math.min(y, window.innerHeight - 160)}px`;
 
-      // show delete if owner
       const del = $("ctxDeletePin");
       del.style.display = "none";
       if(pinId){
@@ -1166,9 +1161,8 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       longPressStart = null;
     }
 
-    // ===== Map + pins =====
     let map;
-    const pins = new Map(); // pinId -> { id,lng,lat,title,address,ownerUid,ownerName,ownerColor,marker,... }
+    const pins = new Map();
 
     function applyBounds(){
       if(!LOCK_TO_CA) return;
@@ -1182,7 +1176,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       map.setStyle(url);
     }
 
-    // ===== Modal state =====
     let activePin = null;
     let activePhotos = [];
     let activeIdx = 0;
@@ -1211,7 +1204,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       $("pmTitle").textContent = pin.title || "Memory";
       $("pmSub").textContent = pin.address || `${pin.lng.toFixed(5)}, ${pin.lat.toFixed(5)}`;
 
-      // reset UI
       $("pmCategory").value = pin.category || "Other";
       $("pmTitleInput").value = pin.title || "Memory";
       $("pmStory").value = pin.story || "";
@@ -1221,7 +1213,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       $("commentsList").innerHTML = "";
       $("commentInput").value = "";
 
-      // fly button
       $("pmFly").onclick = () => {
         map.flyTo({ center:[pin.lng, pin.lat], zoom: 17, speed: 1.2, curve: 1.4 });
       };
@@ -1251,7 +1242,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
 
     function setEditing(on){
       isEditing = !!on;
-
       const canEdit = !!currentUser() && activePin && currentUser().uid === activePin.ownerUid;
 
       const fields = ["pmCategory","pmTitleInput","pmStory","pmMusicUrl"];
@@ -1275,7 +1265,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       $("commentInput").disabled = !authed || !activePin;
       $("btnPostComment").disabled = !authed || !activePin;
 
-      // Edit buttons: only owner can edit
       const owner = !!u && !!activePin && u.uid === activePin.ownerUid;
       $("btnEdit").disabled = !owner;
       $("btnSave").disabled = !owner;
@@ -1289,11 +1278,9 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
 
       $("commentsHint").textContent = authed ? "" : "Sign in to comment.";
 
-      // Topbar user pill
       $("userName").textContent = authed ? (u.displayName || u.email || "Signed in") : "Sign in";
       $("userPill").classList.toggle("online", authed);
 
-      // Auth modal signed-in state
       $("authSignedIn").style.display = authed ? "block" : "none";
       $("authUserName").textContent = authed ? (u.displayName || u.email || "Signed in") : "";
     }
@@ -1319,7 +1306,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       empty.style.display = "none";
       img.style.display = "block";
 
-      // clamp idx
       activeIdx = Math.max(0, Math.min(activeIdx, activePhotos.length - 1));
       const p = activePhotos[activeIdx];
 
@@ -1374,7 +1360,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
     async function refreshEverything(){
       if(!activePin) return;
 
-      // pull latest pin doc
       const fresh = await fetchPin(activePin.id);
       if(fresh){
         Object.assign(activePin, fresh);
@@ -1393,17 +1378,14 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
         $("likeCountPill").textContent = "0 likes";
       }
 
-      // photos
       activePhotos = await fetchPhotos(activePin.id);
       activeIdx = 0;
       renderGallery();
       startCycle();
 
-      // comments
       const comments = await fetchComments(activePin.id);
       renderComments(comments);
 
-      // like state
       const liked = await isLikedByMe(activePin.id);
       $("btnLike").textContent = liked ? "💔 Unlike" : "❤️ Like";
 
@@ -1411,7 +1393,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       setEditing(false);
     }
 
-    // ===== Pins on map =====
     function addPinMarker(pin, fromDb=false){
       if(pins.has(pin.id)) return pins.get(pin.id);
 
@@ -1428,14 +1409,12 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
         openModal(obj);
       });
 
-      // right-click on marker -> context menu for delete
       el.addEventListener("contextmenu", (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
         openCtxMenu(ev.clientX, ev.clientY, { lng: obj.lng, lat: obj.lat }, obj.id);
       });
 
-      // mobile long-press to open context menu
       el.addEventListener("pointerdown", (ev) => {
         if(ev.pointerType !== "touch") return;
         startLongPress(ev, { lng: obj.lng, lat: obj.lat }, obj.id);
@@ -1508,7 +1487,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       }
     }
 
-    // ===== MapTiler search =====
     function closeDropdown(){
       $("dropdown").classList.remove("open");
       $("dropdown").innerHTML = "";
@@ -1571,7 +1549,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
 
           map.flyTo({ center:[lng, lat], zoom: 16, speed: 1.15, curve: 1.4 });
 
-          // show inline actions to add pin to this address
           const dd2 = $("dropdown");
           dd2.innerHTML = "";
           dd2.classList.add("open");
@@ -1613,9 +1590,7 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       });
     }
 
-    // ===== Init map =====
     async function init(){
-      // map
       map = new maplibregl.Map({
         container: "map",
         style: STYLES.streets,
@@ -1626,10 +1601,31 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
         antialias: true
       });
 
-      // mobile long-press on map (touch) to open context menu
       const canvas = map.getCanvas();
       canvas.addEventListener("pointerdown", (ev) => {
         if(ev.pointerType !== "touch") return;
+        if(!touchDoubleTapEnabled){
+          touchDoubleTapEnabled = true;
+          map.doubleClickZoom.disable();
+        }
+
+        const now = Date.now();
+        const tapPos = { x: ev.clientX, y: ev.clientY };
+        const nearLast = lastTapPos && Math.hypot(tapPos.x - lastTapPos.x, tapPos.y - lastTapPos.y) < 24;
+        if(now - lastTapTime < 300 && nearLast){
+          lastTapTime = 0;
+          lastTapPos = null;
+          cancelLongPress();
+          const lngLat = map.unproject([ev.clientX, ev.clientY]);
+          if(LOCK_TO_CA && !isInCA(lngLat.lng, lngLat.lat)) return;
+          longPressTriggered = true;
+          openCtxMenu(ev.clientX, ev.clientY, lngLat, null);
+          ev.preventDefault();
+          return;
+        }
+        lastTapTime = now;
+        lastTapPos = tapPos;
+
         const lngLat = map.unproject([ev.clientX, ev.clientY]);
         if(LOCK_TO_CA && !isInCA(lngLat.lng, lngLat.lat)) return;
         startLongPress(ev, lngLat, null);
@@ -1649,7 +1645,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       map.on("load", async () => {
         applyBounds();
 
-        // load pins
         const all = await fetchAllPins().catch(()=>[]);
         for (const p of all){
           if(!p || typeof p.lng !== "number" || typeof p.lat !== "number") continue;
@@ -1670,7 +1665,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
           }, true);
         }
 
-        // right click menu to add pin
         map.on("contextmenu", (e) => {
           const { lng, lat } = e.lngLat;
           if(LOCK_TO_CA && !isInCA(lng, lat)) return;
@@ -1688,10 +1682,8 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
 
       map.on("style.load", () => applyBounds());
 
-      // ===== UI wiring =====
       $("styleSel").addEventListener("change", (e) => setStyle(e.target.value));
 
-      // search box
       $("search").addEventListener("input", debounce(() => {
         const val = $("search").value.trim();
         $("clearSearch").classList.toggle("show", !!val);
@@ -1706,7 +1698,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
         closeDropdown();
       };
 
-      // locate button
       $("btnLocate").onclick = () => {
         if(!navigator.geolocation){
           alert("Geolocation not supported.");
@@ -1722,14 +1713,13 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       $("btnHelp").onclick = () => {
         alert(
           "How to use:\n\n" +
-          "• Right-click the map (desktop) or long-press (mobile) to add a pin.\n" +
+          "• Right-click (desktop) or long-press / double-tap (mobile) to add a pin.\n" +
           "• Click a pin to open the memory modal.\n" +
           "• Upload 1+ photos — gallery auto-cycles when there’s more than one.\n" +
           "• Only the owner can edit/delete a pin."
         );
       };
 
-      // context menu actions
       $("ctxAddPin").onclick = async () => {
         if(!ctxLngLat) return;
         const { lng, lat } = ctxLngLat;
@@ -1746,13 +1736,11 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
 
       $("ctxClose").onclick = closeCtxMenu;
 
-      // modal close
       $("pmClose").onclick = closeModal;
       $("pinModal").addEventListener("click", (e) => {
         if(e.target === $("pinModal")) closeModal();
       });
 
-      // gallery nav
       $("prevBtn").onclick = () => {
         if(activePhotos.length < 2) return;
         activeIdx = (activeIdx - 1 + activePhotos.length) % activePhotos.length;
@@ -1766,7 +1754,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
         startCycle();
       };
 
-      // upload flow
       $("btnUpload").onclick = async () => {
         if(!activePin) return;
         const ok = await requireAuth();
@@ -1798,7 +1785,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
         }
       });
 
-      // like
       $("btnLike").onclick = async () => {
         if(!activePin) return;
         try{
@@ -1810,7 +1796,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
         }
       };
 
-      // comments
       $("btnPostComment").onclick = async () => {
         if(!activePin) return;
         try{
@@ -1825,7 +1810,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
         }
       };
 
-      // edit/save/cancel
       $("btnEdit").onclick = () => setEditing(true);
 
       $("btnCancelEdit").onclick = async () => {
@@ -1861,12 +1845,10 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
         }
       };
 
-      // auth buttons (topbar + modal)
       $("userPill").onclick = async () => {
         await openAuthModal();
       };
 
-      // auth modal events
       $("authClose").onclick = () => closeAuthModal(false);
       $("tabSignIn").onclick = () => setAuthMode("signin");
       $("tabCreate").onclick = () => setAuthMode("create");
@@ -1913,7 +1895,6 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
         }
       };
 
-      // auth state observer
       (async () => {
         const ok = await ensureFirebaseReady();
         if(!ok) return;
@@ -1926,9 +1907,7 @@ Absolutely—here’s the full updated `index.html` you can paste directly into 
       })();
     }
 
-    // Start
     init().catch(console.error);
   </script>
 </body>
 </html>
-```
