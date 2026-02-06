@@ -1252,6 +1252,9 @@
       menu.style.left = `${Math.min(x, window.innerWidth - 250)}px`;
       menu.style.top  = `${Math.min(y, window.innerHeight - 160)}px`;
 
+      const add = $("ctxAddPin");
+      add.style.display = pinId ? "none" : "flex";
+
       const del = $("ctxDeletePin");
       del.style.display = "none";
       if(pinId){
@@ -1891,6 +1894,7 @@
         antialias: true
       });
 
+      // mobile double-tap on map (touch) to open context menu
       const canvas = map.getCanvas();
       canvas.addEventListener("pointerdown", (ev) => {
         if(ev.pointerType !== "touch") return;
@@ -1914,22 +1918,7 @@
         }
         lastTapTime = now;
         lastTapPos = tapPos;
-
-        const lngLat = map.unproject([ev.clientX, ev.clientY]);
-        if(LOCK_TO_CA && !isInCA(lngLat.lng, lngLat.lat)) return;
-        startLongPress(ev, lngLat, null);
       });
-      canvas.addEventListener("pointermove", (ev) => {
-        if(ev.pointerType !== "touch" || !longPressStart) return;
-        const dx = ev.clientX - longPressStart.x;
-        const dy = ev.clientY - longPressStart.y;
-        if(Math.hypot(dx, dy) > 8){
-          longPressMoved = true;
-          cancelLongPress();
-        }
-      });
-      canvas.addEventListener("pointerup", cancelLongPress);
-      canvas.addEventListener("pointercancel", cancelLongPress);
 
       map.on("load", async () => {
         applyBounds();
